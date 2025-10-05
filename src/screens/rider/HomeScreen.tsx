@@ -16,7 +16,10 @@ import {
 import MapView, { Marker, Region, Callout } from 'react-native-maps';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import { usePayment } from '../../contexts/PaymentContext';
 import { rideService, locationService } from '../../services';
+import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import type { Driver, RideLocation, Ride } from '../../services';
 
 const { width, height } = Dimensions.get('window');
@@ -30,6 +33,14 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { user } = useAuth();
+  const { sendTestNotification } = useNotification();
+  const { 
+    selectedPaymentMethod,
+    availablePaymentMethods,
+    selectPaymentMethod,
+    processRidePayment,
+    isProcessingPayment
+  } = usePayment();
   const { 
     socket, 
     isConnected, 
@@ -251,19 +262,31 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setCurrentRide(null);
     setIsRequestingRide(false);
     
-    // Log payment
+    console.log('🎉 Ride completed! Processing payment...', rideData);
+    
     try {
-      await rideService.logPayment({
-        rideId: rideData.id,
-        amount: rideData.actualFare || rideData.estimatedFare,
-        method: 'cash', // Default to cash, could be configurable
-        status: 'completed',
-      });
+      // Process payment using the payment service
+      const paymentAmount = rideData.actualFare || rideData.estimatedFare || estimatedFare;
       
-      navigation.navigate('RideReceipt', { ride: rideData });
+      await processRidePayment(rideData.id, paymentAmount);
+      
+      console.log('✅ Payment processed successfully');
+      
+      // Navigate to receipt screen with rideId
+      navigation.navigate('RideReceipt', { rideId: rideData.id });
+      
     } catch (error) {
-      console.error('Error logging payment:', error);
-      Alert.alert('Payment Error', 'There was an issue processing your payment.');
+      console.error('❌ Error processing payment:', error);
+      Alert.alert(
+        'Payment Error', 
+        'There was an issue processing your payment. Please contact support.',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('RideReceipt', { rideId: rideData.id })
+          }
+        ]
+      );
     }
   };
 
@@ -389,6 +412,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setPickupLocation(currentLocation);
     setDropoffLocation(null);
     setEstimatedFare(0);
+  };
+
+  // 🔔 Test notification function
+  const testNotifications = async () => {
+    try {
+      if (user?.role === 'rider') {
+        await sendTestNotification(
+          '🚗 Driver Found!', 
+          'Ahmed Ben Salem has accepted your ride request.'
+        );
+      } else {
+        await sendTestNotification(
+          '📱 New Ride Request!', 
+          'Pickup: Khniss, Monastir - 8.50 TND'
+        );
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+    }
   };
 
   const searchLocation = async (query: string) => {
@@ -590,6 +632,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </View>
           )}
 
+          {/* Payment Method Selection */}
+          <PaymentMethodSelector
+            selectedMethod={selectedPaymentMethod}
+            availableMethods={availablePaymentMethods}
+            onMethodSelect={selectPaymentMethod}
+            showTitle={true}
+          />
+
           <Button
             mode="contained"
             onPress={requestRide}
@@ -617,6 +667,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         onPress={getCurrentLocationFromService}
         size="small"
       />
+
+      {/* Test Notification FAB - Development Only */}
+      {__DEV__ && (
+        <FAB
+          icon="bell-ring"
+          style={styles.testNotificationFab}
+          onPress={testNotifications}
+          size="small"
+        />
+      )}
 
       {/* Location Search Modal */}
       <Portal>
@@ -794,6 +854,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 200,
     right: 16,
+  },
+  testNotificationFab: {
+    position: 'absolute',
+    bottom: 140,
+    right: 16,
+    backgroundColor: '#FF6B35',
   },
   calloutContainer: {
     minWidth: 150,

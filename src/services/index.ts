@@ -4,6 +4,8 @@ export { default as authService } from './auth';
 export { default as rideService } from './ride';
 export { default as locationService } from './location';
 export { default as driverService } from './driver';
+export { default as notificationService } from './notification';
+export { default as paymentService } from './payment';
 
 // Re-export auth types
 export type {
@@ -17,9 +19,8 @@ export type {
 export type {
   RideLocation,
   Driver,
-  RideRequest,
   Ride,
-  PaymentLog,
+  RideRequest,
 } from './ride';
 
 // Re-export location types
@@ -34,6 +35,13 @@ export type {
   RideRequest as DriverRideRequest,
   DriverLocation,
 } from './driver';
+
+// Re-export payment types
+export type {
+  PaymentMethod,
+  PaymentLog,
+  PaymentReceipt,
+} from './payment';
 
 // Service initialization helper
 export const initializeServices = async () => {

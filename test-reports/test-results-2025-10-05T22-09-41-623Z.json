@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-10-05T22:09:41.625Z",
+  "config": {
+    "backend": {
+      "url": "http://localhost:3000",
+      "timeout": 30000
+    },
+    "devices": {
+      "android": "emulator",
+      "ios": "simulator"
+    }
+  },
+  "unit": {
+    "passed": 0,
+    "failed": 1,
+    "total": 0,
+    "coverage": 0
+  },
+  "integration": {
+    "passed": 0,
+    "failed": 0,
+    "total": 0
+  },
+  "device": {
+    "android": {},
+    "ios": {}
+  },
+  "backend": {
+    "endpoints": [
+      {
+        "name": "Payment Flow",
+        "status": "PASSED",
+        "details": "Payment logging and receipt retrieval successful"
+      }
+    ],
+    "errors": []
+  },
+  "screenshots": [],
+  "summary": {
+    "overall": "PENDING",
+    "duration": 0,
+    "recommendations": []
+  }
+}
