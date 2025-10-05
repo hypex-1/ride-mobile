@@ -1,5 +1,14 @@
 // Core API services
 export { default as apiService } from './api';
+export { default as authService } from './auth';
+
+// Re-export auth types
+export type {
+  LoginCredentials,
+  RegisterData,
+  User,
+  AuthResponse,
+} from './auth';
 
 // Service initialization helper
 export const initializeServices = async () => {
