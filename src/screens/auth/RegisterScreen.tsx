@@ -92,7 +92,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Dashboard'),
+            // Navigation will happen automatically when user state changes
           },
         ]
       );

@@ -16,17 +16,26 @@ export interface RegisterData {
   role: 'rider' | 'driver';
 }
 
+export interface BackendRegisterData {
+  email: string;
+  password: string;
+  name?: string;
+  role?: 'RIDER' | 'DRIVER';
+}
+
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  phoneNumber: string;
+  name?: string;
   role: 'rider' | 'driver';
   isVerified: boolean;
-  profilePicture?: string;
   createdAt: string;
   updatedAt: string;
+  // Legacy fields for backward compatibility
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  profilePicture?: string;
 }
 
 export interface AuthResponse {
@@ -39,7 +48,15 @@ class AuthService {
   // Register new user
   public async register(userData: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await apiService.post<AuthResponse>('/auth/register', userData);
+      // Transform mobile app data to backend format
+      const backendData: BackendRegisterData = {
+        email: userData.email,
+        password: userData.password,
+        name: `${userData.firstName} ${userData.lastName}`.trim(),
+        role: userData.role.toUpperCase() as 'RIDER' | 'DRIVER',
+      };
+      
+      const response = await apiService.post<AuthResponse>('/auth/register', backendData);
       
       // Save user data and tokens
       await apiService.saveUserData(response.user);

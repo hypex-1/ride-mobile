@@ -10,10 +10,7 @@ import {
   Chip,
 } from 'react-native-paper';
 import { useAuth } from '../contexts/AuthContext';
-
-interface DashboardScreenProps {
-  navigation: any;
-}
+import { DashboardScreenProps } from '../types/navigation';
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -40,12 +37,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <View style={styles.profileHeader}>
             <Avatar.Text
               size={80}
-              label={`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
+              label={user.name ? user.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase() : user.email.charAt(0).toUpperCase()}
             />
             <View style={styles.profileInfo}>
-              <Title>{user.firstName} {user.lastName}</Title>
+              <Title>{user.name || 'User'}</Title>
               <Paragraph>{user.email}</Paragraph>
-              <Paragraph>{user.phoneNumber}</Paragraph>
               <Chip 
                 mode="outlined" 
                 style={[styles.roleChip, isDriver ? styles.driverChip : styles.riderChip]}
@@ -86,7 +82,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <Button
                 mode="contained"
                 style={styles.actionButton}
-                onPress={() => {/* TODO: Navigate to ride request */}}
+                onPress={() => navigation.navigate('Home')}
               >
                 🚕 Request Ride
               </Button>
