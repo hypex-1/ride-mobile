@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Register: undefined;
   Dashboard: undefined;
   Home: undefined;
+  DriverHome: undefined;
   RideTracking: {
     rideId: string;
     pickupLocation: {

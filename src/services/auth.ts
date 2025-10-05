@@ -58,7 +58,8 @@ class AuthService {
       
       const response = await apiService.post<AuthResponse>('/auth/register', backendData);
       
-      // Save user data and tokens
+      // Save tokens and user data
+      await apiService.saveTokens(response.accessToken, response.refreshToken);
       await apiService.saveUserData(response.user);
       
       return response;
@@ -73,7 +74,8 @@ class AuthService {
     try {
       const response = await apiService.post<AuthResponse>('/auth/login', credentials);
       
-      // Save user data and tokens
+      // Save tokens and user data
+      await apiService.saveTokens(response.accessToken, response.refreshToken);
       await apiService.saveUserData(response.user);
       
       return response;

@@ -105,6 +105,29 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               {errors.password}
             </HelperText>
 
+            {/* Test Login Buttons */}
+            <View style={styles.testSection}>
+              <Text style={styles.testTitle}>Quick Test Login:</Text>
+              <View style={styles.testButtons}>
+                <Button
+                  mode="outlined"
+                  onPress={() => setCredentials({email: 'rider@test.com', password: 'TestPass123!'})}
+                  style={styles.testButton}
+                  compact
+                >
+                  Test Rider
+                </Button>
+                <Button
+                  mode="outlined"
+                  onPress={() => setCredentials({email: 'driver@test.com', password: 'TestPass123!'})}
+                  style={styles.testButton}
+                  compact
+                >
+                  Test Driver
+                </Button>
+              </View>
+            </View>
+
             {/* Login Button */}
             <Button
               mode="contained"
@@ -167,6 +190,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
+  },
+  testSection: {
+    marginVertical: 16,
+    padding: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  testTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+    color: '#666',
+  },
+  testButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  testButton: {
+    flex: 1,
+    marginHorizontal: 4,
   },
 });
 

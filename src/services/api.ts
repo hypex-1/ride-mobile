@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
 // API Configuration
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 const WS_URL = process.env.EXPO_PUBLIC_WS_URL || 'ws://localhost:3000';
 
 // Storage Keys
@@ -95,7 +95,7 @@ class ApiService {
     }
   }
 
-  private async saveTokens(accessToken: string, refreshToken: string): Promise<void> {
+  public async saveTokens(accessToken: string, refreshToken: string): Promise<void> {
     try {
       await SecureStore.setItemAsync(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
       await SecureStore.setItemAsync(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
@@ -151,6 +151,11 @@ class ApiService {
 
   public async put<T>(endpoint: string, data?: any): Promise<T> {
     const response: AxiosResponse<T> = await this.axiosInstance.put(endpoint, data);
+    return response.data;
+  }
+
+  public async patch<T>(endpoint: string, data?: any): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.patch(endpoint, data);
     return response.data;
   }
 

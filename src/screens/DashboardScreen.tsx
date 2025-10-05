@@ -64,7 +64,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               <Button
                 mode="contained"
                 style={styles.actionButton}
-                onPress={() => {/* TODO: Navigate to driver mode */}}
+                onPress={() => navigation.navigate('DriverHome')}
               >
                 🚗 Go Online
               </Button>

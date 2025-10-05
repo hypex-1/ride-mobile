@@ -36,10 +36,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (isAuth) {
         // Try to get current user from backend (/auth/me)
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          // If getting user fails, clear auth data
+          await authService.logout();
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      // Clear any potentially invalid auth data
+      await authService.logout();
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -76,10 +86,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       await authService.logout();
-      setUser(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout error:', error);
+      // Even if logout fails, clear local state
     } finally {
+      setUser(null);
       setIsLoading(false);
     }
   };

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Dimensions } from 'react-native';
+﻿import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Alert, Dimensions, ScrollView } from 'react-native';
 import { 
   Surface, 
   Card, 
@@ -8,30 +8,21 @@ import {
   Portal, 
   Modal, 
   ActivityIndicator,
-  FAB
+  FAB,
+  Chip,
+  IconButton,
+  TextInput
 } from 'react-native-paper';
-import MapView, { Marker, Region } from 'react-native-maps';
-import * as Location from 'expo-location';
+import MapView, { Marker, Region, Callout } from 'react-native-maps';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
+import { rideService, locationService } from '../../services';
+import type { Driver, RideLocation, Ride } from '../../services';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
-interface Driver {
-  id: string;
-  lat: number;
-  lng: number;
-  available: boolean;
-}
-
-interface RideLocation {
-  latitude: number;
-  longitude: number;
-  address?: string;
-}
 
 interface HomeScreenProps {
   navigation: any;
@@ -39,7 +30,18 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { user } = useAuth();
-  const { socket, isConnected } = useSocket();
+  const { 
+    socket, 
+    isConnected, 
+    onRideUpdate, 
+    onDriverLocation, 
+    onIncomingRide, 
+    onRideAccepted, 
+    onRideCancelled,
+    joinRoom,
+    emitRideRequest,
+    emitRideCancel
+  } = useSocket();
   
   // Map state
   const [region, setRegion] = useState<Region>({
@@ -57,15 +59,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Drivers state
   const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
   
+  // Ride state
+  const [currentRide, setCurrentRide] = useState<Ride | null>(null);
+  const [estimatedFare, setEstimatedFare] = useState<number>(0);
+  const [rideType, setRideType] = useState<'standard' | 'premium' | 'shared'>('standard');
+  
   // UI state
   const [isRequestingRide, setIsRequestingRide] = useState(false);
   const [isSearchingDriver, setIsSearchingDriver] = useState(false);
   const [locationPermission, setLocationPermission] = useState(false);
+  const [showLocationSearch, setShowLocationSearch] = useState<'pickup' | 'dropoff' | null>(null);
+  const [locationSearchText, setLocationSearchText] = useState('');
   
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
-    requestLocationPermission();
+    initializeLocation();
   }, []);
 
   useEffect(() => {
@@ -75,68 +84,75 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, [currentLocation]);
 
   useEffect(() => {
+    if (pickupLocation && dropoffLocation) {
+      calculateEstimatedFare();
+    }
+  }, [pickupLocation, dropoffLocation, rideType]);
+
+  useEffect(() => {
     if (socket && isConnected) {
-      // Listen for ride updates
-      socket.on('rideUpdate', handleRideUpdate);
-      socket.on('driverLocation', handleDriverLocationUpdate);
-      
+      setupSocketListeners();
       return () => {
-        socket.off('rideUpdate');
-        socket.off('driverLocation');
+        cleanupSocketListeners();
       };
     }
   }, [socket, isConnected]);
 
-  const requestLocationPermission = async () => {
+  const initializeLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const hasPermission = await locationService.requestPermissions();
+      setLocationPermission(hasPermission);
       
-      if (status !== 'granted') {
+      if (hasPermission) {
+        await getCurrentLocationFromService();
+      } else {
         Alert.alert(
           'Location Permission Required',
-          'Please enable location permissions to use the app.'
+          'Please enable location permissions to use the ride service.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Retry', onPress: () => initializeLocation() },
+          ]
         );
-        return;
       }
-      
-      setLocationPermission(true);
-      getCurrentLocation();
     } catch (error) {
-      console.error('Error requesting location permission:', error);
+      console.error('Error initializing location:', error);
     }
   };
 
-  const getCurrentLocation = async () => {
+  const getCurrentLocationFromService = async () => {
     try {
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+      const position = await locationService.getCurrentPosition();
       
-      const currentPos = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      };
-      
-      setCurrentLocation(currentPos);
-      setPickupLocation(currentPos); // Default pickup to current location
-      
-      // Update map region
-      setRegion({
-        ...currentPos,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      });
-      
-      // Animate map to current location
-      mapRef.current?.animateToRegion({
-        ...currentPos,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA,
-      });
-      
+      if (position) {
+        const location: RideLocation = {
+          latitude: position.latitude,
+          longitude: position.longitude,
+        };
+        
+        // Get address for current location
+        const address = await locationService.reverseGeocode(position.latitude, position.longitude);
+        if (address) {
+          location.address = address.address;
+        }
+        
+        setCurrentLocation(location);
+        setPickupLocation(location);
+        
+        // Update map region
+        const newRegion = {
+          ...position,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        };
+        setRegion(newRegion);
+        
+        // Animate to current location
+        mapRef.current?.animateToRegion(newRegion, 1000);
+      }
     } catch (error) {
       console.error('Error getting current location:', error);
-      Alert.alert('Error', 'Could not get your current location');
+      Alert.alert('Error', 'Could not get your current location. Please try again.');
     }
   };
 
@@ -144,43 +160,159 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     if (!currentLocation) return;
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/drivers/nearby?lat=${currentLocation.latitude}&lng=${currentLocation.longitude}`);
-      // const drivers = await response.json();
-      
-      // Mock data for now
-      const mockDrivers: Driver[] = [
-        {
-          id: '1',
-          lat: currentLocation.latitude + 0.01,
-          lng: currentLocation.longitude + 0.01,
-          available: true,
-        },
-        {
-          id: '2',
-          lat: currentLocation.latitude - 0.015,
-          lng: currentLocation.longitude + 0.02,
-          available: true,
-        },
-      ];
-      
-      setNearbyDrivers(mockDrivers);
+      const drivers = await rideService.getNearbyDrivers(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        dropoffLocation?.latitude,
+        dropoffLocation?.longitude
+      );
+      setNearbyDrivers(drivers);
     } catch (error) {
       console.error('Error fetching nearby drivers:', error);
     }
   };
 
-  const handleMapPress = (event: any) => {
+  const calculateEstimatedFare = async () => {
+    if (!pickupLocation || !dropoffLocation) return;
+    
+    try {
+      const fare = await rideService.calculateFare(pickupLocation, dropoffLocation, rideType);
+      setEstimatedFare(fare);
+    } catch (error) {
+      console.error('Error calculating fare:', error);
+    }
+  };
+
+  const setupSocketListeners = () => {
+    if (!socket) return;
+
+    console.log('🔧 Setting up enhanced socket listeners for rider');
+    
+    // Use the enhanced socket context methods
+    onRideUpdate(handleRideUpdate);
+    onDriverLocation(handleDriverLocationUpdate);
+    onRideAccepted(handleRideAccepted);
+    onRideCancelled(handleRideCancelled);
+    
+    // Traditional socket listeners for compatibility
+    socket.on('rideCompleted', handleRideCompleted);
+    socket.on('driverAssigned', handleDriverAssigned);
+  };
+
+  const cleanupSocketListeners = () => {
+    if (!socket) return;
+
+    socket.off('rideUpdate');
+    socket.off('driverLocation');
+    socket.off('rideAccepted');
+    socket.off('rideCompleted');
+  };
+
+  const handleRideUpdate = (rideData: any) => {
+    console.log('Ride update received:', rideData);
+    
+    if (rideData.status === 'ACCEPTED') {
+      setIsSearchingDriver(false);
+      setCurrentRide(rideData);
+      Alert.alert('Ride Accepted!', 'Your driver is on the way.');
+      navigation.navigate('RideTracking', { ride: rideData });
+    } else if (rideData.status === 'COMPLETED') {
+      handleRideCompleted(rideData);
+    }
+  };
+
+  const handleDriverLocationUpdate = (locationData: any) => {
+    console.log('Driver location update:', locationData);
+    
+    // Update driver location on map if we have an active ride
+    if (currentRide && locationData.driverId === currentRide.driverId) {
+      // Update driver marker position
+      setNearbyDrivers(prev => 
+        prev.map(driver => 
+          driver.id === locationData.driverId 
+            ? { ...driver, location: locationData.location }
+            : driver
+        )
+      );
+    }
+  };
+
+  const handleRideAccepted = (rideData: any) => {
+    setIsSearchingDriver(false);
+    setCurrentRide(rideData);
+    Alert.alert(
+      'Ride Accepted!', 
+      `Driver ${rideData.driver?.name || 'Unknown'} is on the way.`,
+      [{ text: 'OK', onPress: () => navigation.navigate('RideTracking', { ride: rideData }) }]
+    );
+  };
+
+  const handleRideCompleted = async (rideData: any) => {
+    setCurrentRide(null);
+    setIsRequestingRide(false);
+    
+    // Log payment
+    try {
+      await rideService.logPayment({
+        rideId: rideData.id,
+        amount: rideData.actualFare || rideData.estimatedFare,
+        method: 'cash', // Default to cash, could be configurable
+        status: 'completed',
+      });
+      
+      navigation.navigate('RideReceipt', { ride: rideData });
+    } catch (error) {
+      console.error('Error logging payment:', error);
+      Alert.alert('Payment Error', 'There was an issue processing your payment.');
+    }
+  };
+
+  const handleRideCancelled = (data: any) => {
+    console.log('🚫 Ride cancelled by driver/system:', data);
+    setCurrentRide(null);
+    setIsRequestingRide(false);
+    setIsSearchingDriver(false);
+    
+    Alert.alert(
+      'Ride Cancelled',
+      data.reason || 'Your ride has been cancelled.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleDriverAssigned = (data: any) => {
+    console.log('👨‍✈️ Driver assigned:', data);
+    setCurrentRide(data.ride);
+    setIsSearchingDriver(false);
+    
+    Alert.alert(
+      'Driver Found!',
+      `${data.driver?.name || 'A driver'} has been assigned to your ride.`,
+      [{ text: 'Track Ride', onPress: () => navigation.navigate('RideTracking', { ride: data.ride }) }]
+    );
+  };
+
+  const handleMapPress = async (event: any) => {
     const coordinate = event.nativeEvent.coordinate;
     
-    if (!pickupLocation) {
-      setPickupLocation(coordinate);
-    } else if (!dropoffLocation) {
-      setDropoffLocation(coordinate);
-    } else {
-      // Reset and set new pickup
-      setPickupLocation(coordinate);
-      setDropoffLocation(null);
+    try {
+      const address = await locationService.reverseGeocode(coordinate.latitude, coordinate.longitude);
+      const location: RideLocation = {
+        ...coordinate,
+        address: address?.address || `${coordinate.latitude.toFixed(4)}, ${coordinate.longitude.toFixed(4)}`,
+      };
+      
+      if (!pickupLocation) {
+        setPickupLocation(location);
+      } else if (!dropoffLocation) {
+        setDropoffLocation(location);
+      } else {
+        // Reset and set new pickup
+        setPickupLocation(location);
+        setDropoffLocation(null);
+      }
+    } catch (error) {
+      console.error('Error handling map press:', error);
     }
   };
 
@@ -190,181 +322,361 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       return;
     }
     
+    console.log('Current user:', user);
+    console.log('User role:', user?.role);
+    
     setIsRequestingRide(true);
     setIsSearchingDriver(true);
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/rides/request', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     pickup: pickupLocation,
-      //     dropoff: dropoffLocation,
-      //   }),
-      // });
+      const rideRequest = {
+        pickupLocation,
+        dropoffLocation,
+        rideType,
+        estimatedFare,
+      };
       
-      // Mock ride request
-      setTimeout(() => {
-        handleRideUpdate({ status: 'ACCEPTED', rideId: 'mock-ride-123' });
-      }, 3000);
+      const ride = await rideService.requestRide(rideRequest);
+      console.log('✅ Ride requested successfully:', ride);
+      console.log('🔍 Ride ID received:', ride?.id);
+      setCurrentRide(ride);
+      
+      // Emit socket event for real-time driver matching
+      emitRideRequest({
+        rideId: ride.id,
+        riderId: user?.id,
+        pickupLocation,
+        dropoffLocation,
+        rideType,
+        estimatedFare,
+      });
       
     } catch (error) {
       console.error('Error requesting ride:', error);
-      Alert.alert('Error', 'Failed to request ride');
       setIsRequestingRide(false);
       setIsSearchingDriver(false);
+      Alert.alert('Error', 'Failed to request ride. Please try again.');
     }
   };
 
-  const handleRideUpdate = (data: any) => {
-    console.log('Ride update:', data);
-    
-    if (data.status === 'ACCEPTED') {
+  const cancelRideRequest = async (rideId: string | number) => {
+    try {
+      console.log('Attempting to cancel ride with ID:', rideId);
+      console.log('Current ride object:', currentRide);
+      
+      if (!rideId && rideId !== 0) {
+        console.error('Cannot cancel: rideId is undefined');
+        setCurrentRide(null);
+        setIsRequestingRide(false);
+        setIsSearchingDriver(false);
+        return;
+      }
+      
+      await rideService.cancelRide(rideId, 'User cancelled');
+      
+      // Emit socket event for real-time cancellation
+      emitRideCancel(rideId, 'User cancelled');
+      
+      setCurrentRide(null);
+      setIsRequestingRide(false);
       setIsSearchingDriver(false);
-      navigation.navigate('RideTracking', { 
-        rideId: data.rideId,
-        pickup: pickupLocation,
-        dropoff: dropoffLocation 
-      });
+    } catch (error) {
+      console.error('Error cancelling ride:', error);
     }
   };
 
-  const handleDriverLocationUpdate = (data: any) => {
-    console.log('Driver location update:', data);
-    // Update driver positions on map
-    setNearbyDrivers(prev => 
-      prev.map(driver => 
-        driver.id === data.driverId 
-          ? { ...driver, lat: data.lat, lng: data.lng }
-          : driver
-      )
-    );
-  };
-
-  const resetLocations = () => {
+  const clearLocations = () => {
     setPickupLocation(currentLocation);
     setDropoffLocation(null);
+    setEstimatedFare(0);
+  };
+
+  const searchLocation = async (query: string) => {
+    if (query.length < 3) return;
+    
+    try {
+      const results = await locationService.geocode(query);
+      // For simplicity, just take the first result
+      if (results.length > 0) {
+        const location = results[0];
+        
+        if (showLocationSearch === 'pickup') {
+          setPickupLocation(location);
+        } else if (showLocationSearch === 'dropoff') {
+          setDropoffLocation(location);
+        }
+        
+        // Animate map to new location
+        mapRef.current?.animateToRegion({
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA,
+        }, 1000);
+        
+        setShowLocationSearch(null);
+      }
+    } catch (error) {
+      console.error('Error searching location:', error);
+    }
+  };
+
+  const getRideTypeText = (type: string) => {
+    switch (type) {
+      case 'premium': return '(Premium rates)';
+      case 'shared': return '(Shared discount)';
+      default: return '(Standard rates)';
+    }
   };
 
   if (!locationPermission) {
     return (
-      <View style={styles.centered}>
-        <Text>Requesting location permission...</Text>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" />
+        <Text style={styles.loadingText}>Requesting location permissions...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {/* Map */}
       <MapView
         ref={mapRef}
         style={styles.map}
         region={region}
         onPress={handleMapPress}
         showsUserLocation={true}
-        showsMyLocationButton={true}
+        showsMyLocationButton={false}
       >
-        {/* Pickup marker */}
+        {/* Current Location Marker */}
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="Your Location"
+            description="You are here"
+            pinColor="blue"
+          />
+        )}
+
+        {/* Pickup Location Marker */}
         {pickupLocation && (
           <Marker
             coordinate={pickupLocation}
             title="Pickup Location"
+            description={pickupLocation.address || 'Pickup point'}
             pinColor="green"
           />
         )}
-        
-        {/* Dropoff marker */}
+
+        {/* Dropoff Location Marker */}
         {dropoffLocation && (
           <Marker
             coordinate={dropoffLocation}
-            title="Dropoff Location"
+            title="Dropoff Location" 
+            description={dropoffLocation.address || 'Destination'}
             pinColor="red"
           />
         )}
-        
-        {/* Driver markers */}
-        {nearbyDrivers.map(driver => (
+
+        {/* Driver Markers */}
+        {nearbyDrivers.map((driver) => (
           <Marker
             key={driver.id}
-            coordinate={{ latitude: driver.lat, longitude: driver.lng }}
-            title={`Driver ${driver.id}`}
-            description={driver.available ? 'Available' : 'Busy'}
+            coordinate={driver.location}
+            title={driver.name}
+            description={`${driver.vehicle.make} ${driver.vehicle.model} - ${driver.distance?.toFixed(1)}km away`}
+            pinColor="orange"
           >
-            <View style={styles.driverMarker}>
-              <Text style={styles.driverText}>🚗</Text>
-            </View>
+            <Callout>
+              <View style={styles.calloutContainer}>
+                <Text style={styles.calloutTitle}>{driver.name}</Text>
+                <Text style={styles.calloutSubtitle}>
+                  {driver.vehicle.color} {driver.vehicle.make} {driver.vehicle.model}
+                </Text>
+                <Text style={styles.calloutSubtitle}>
+                  Rating: {driver.rating}  {driver.distance?.toFixed(1)}km away
+                </Text>
+                <Text style={styles.calloutSubtitle}>
+                  ETA: {driver.estimatedArrival} min
+                </Text>
+              </View>
+            </Callout>
           </Marker>
         ))}
       </MapView>
 
-      {/* Location selection info */}
-      <Surface style={styles.infoCard}>
-        <Text variant="titleMedium">Select Locations</Text>
-        <Text variant="bodyMedium">
-          {!pickupLocation && "Tap on map to set pickup location"}
-          {pickupLocation && !dropoffLocation && "Tap on map to set dropoff location"}
-          {pickupLocation && dropoffLocation && "Ready to request ride!"}
-        </Text>
-        
-        {pickupLocation && dropoffLocation && (
-          <View style={styles.actionButtons}>
-            <Button 
-              mode="outlined" 
-              onPress={resetLocations}
-              style={styles.button}
-            >
-              Reset
-            </Button>
-            <Button 
-              mode="contained" 
-              onPress={requestRide}
-              style={styles.button}
-              loading={isRequestingRide}
-              disabled={isRequestingRide}
-            >
-              Request Ride
-            </Button>
-          </View>
-        )}
+      {/* Location Cards */}
+      <Surface style={styles.locationContainer}>
+        {/* Pickup Location */}
+        <Card style={styles.locationCard}>
+          <Card.Content style={styles.locationCardContent}>
+            <View style={styles.locationRow}>
+              <View style={styles.locationDot} />
+              <View style={styles.locationTextContainer}>
+                <Text style={styles.locationLabel}>Pickup</Text>
+                <Text style={styles.locationText} numberOfLines={1}>
+                  {pickupLocation?.address || 'Select pickup location'}
+                </Text>
+              </View>
+              <IconButton
+                icon="map-marker-plus"
+                size={20}
+                onPress={() => setShowLocationSearch('pickup')}
+              />
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Dropoff Location */}
+        <Card style={styles.locationCard}>
+          <Card.Content style={styles.locationCardContent}>
+            <View style={styles.locationRow}>
+              <View style={[styles.locationDot, { backgroundColor: '#f44336' }]} />
+              <View style={styles.locationTextContainer}>
+                <Text style={styles.locationLabel}>Dropoff</Text>
+                <Text style={styles.locationText} numberOfLines={1}>
+                  {dropoffLocation?.address || 'Select destination'}
+                </Text>
+              </View>
+              <IconButton
+                icon="map-marker-plus"
+                size={20}
+                onPress={() => setShowLocationSearch('dropoff')}
+              />
+            </View>
+          </Card.Content>
+        </Card>
       </Surface>
 
-      {/* Current location FAB */}
+      {/* Ride Type Selection */}
+      {pickupLocation && dropoffLocation && (
+        <Surface style={styles.rideOptionsContainer}>
+          <View style={styles.rideTypeContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <Chip
+                selected={rideType === 'standard'}
+                onPress={() => setRideType('standard')}
+                style={styles.rideTypeChip}
+              >
+                Standard
+              </Chip>
+              <Chip
+                selected={rideType === 'premium'}
+                onPress={() => setRideType('premium')}
+                style={styles.rideTypeChip}
+              >
+                Premium
+              </Chip>
+              <Chip
+                selected={rideType === 'shared'}
+                onPress={() => setRideType('shared')}
+                style={styles.rideTypeChip}
+              >
+                Shared
+              </Chip>
+            </ScrollView>
+          </View>
+
+          {estimatedFare > 0 && (
+            <View style={styles.fareContainer}>
+              <View style={styles.fareRow}>
+                <Text style={styles.fareLabel}>Estimated Fare</Text>
+                <Text style={styles.fareAmount}>{estimatedFare.toFixed(3)} TND</Text>
+              </View>
+              <Text style={styles.fareSubtext}>
+                Includes: Base fare + Distance rate {getRideTypeText(rideType)}
+              </Text>
+            </View>
+          )}
+
+          <Button
+            mode="contained"
+            onPress={requestRide}
+            loading={isRequestingRide}
+            disabled={isRequestingRide}
+            style={styles.requestButton}
+          >
+            {isRequestingRide ? 'Requesting Ride...' : 'Request Ride'}
+          </Button>
+        </Surface>
+      )}
+
+      {/* Clear Locations FAB */}
       <FAB
-        style={styles.fab}
-        icon="crosshairs-gps"
-        onPress={getCurrentLocation}
+        icon="refresh"
+        style={styles.clearFab}
+        onPress={clearLocations}
         size="small"
       />
 
-      {/* Searching for driver modal */}
+      {/* My Location FAB */}
+      <FAB
+        icon="crosshairs-gps"
+        style={styles.locationFab}
+        onPress={getCurrentLocationFromService}
+        size="small"
+      />
+
+      {/* Location Search Modal */}
       <Portal>
-        <Modal 
-          visible={isSearchingDriver} 
-          dismissable={false}
-          contentContainerStyle={styles.modalContent}
+        <Modal
+          visible={!!showLocationSearch}
+          onDismiss={() => setShowLocationSearch(null)}
+          contentContainerStyle={styles.searchModal}
         >
-          <Card>
-            <Card.Content style={styles.searchingContent}>
-              <ActivityIndicator size="large" />
-              <Text variant="titleMedium" style={styles.searchingText}>
-                Searching for driver...
-              </Text>
-              <Text variant="bodyMedium">
-                We're finding the best driver for your ride
-              </Text>
-              <Button 
-                mode="outlined" 
-                onPress={() => {
-                  setIsSearchingDriver(false);
-                  setIsRequestingRide(false);
-                }}
-                style={styles.cancelButton}
-              >
-                Cancel
-              </Button>
-            </Card.Content>
-          </Card>
+          <Text style={styles.searchTitle}>
+            Search {showLocationSearch === 'pickup' ? 'Pickup' : 'Destination'} Location
+          </Text>
+          <TextInput
+            mode="outlined"
+            label="Enter address or place name"
+            value={locationSearchText}
+            onChangeText={setLocationSearchText}
+            onSubmitEditing={() => searchLocation(locationSearchText)}
+            style={styles.searchInput}
+            autoFocus
+          />
+          <View style={styles.searchButtons}>
+            <Button
+              mode="outlined"
+              onPress={() => setShowLocationSearch(null)}
+              style={styles.searchButton}
+            >
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={() => searchLocation(locationSearchText)}
+              style={styles.searchButton}
+            >
+              Search
+            </Button>
+          </View>
+        </Modal>
+      </Portal>
+
+      {/* Searching Driver Modal */}
+      <Portal>
+        <Modal
+          visible={isSearchingDriver}
+          dismissable={false}
+          contentContainerStyle={styles.searchingModal}
+        >
+          <ActivityIndicator size="large" />
+          <Text style={styles.searchingText}>Searching for driver...</Text>
+          <Text style={styles.searchingSubtext}>
+            We're finding the best driver for your trip
+          </Text>
+          {currentRide && (
+            <Button
+              mode="outlined"
+              onPress={() => cancelRideRequest(currentRide?.id)}
+              style={styles.cancelButton}
+            >
+              Cancel Request
+            </Button>
+          )}
         </Modal>
       </Portal>
     </View>
@@ -374,60 +686,167 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
-  centered: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
   },
   map: {
     flex: 1,
   },
-  infoCard: {
+  locationContainer: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    padding: 16,
+    top: 50,
+    left: 16,
+    right: 16,
     borderRadius: 12,
     elevation: 4,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    marginTop: 12,
-    gap: 8,
+  locationCard: {
+    marginBottom: 8,
   },
-  button: {
+  locationCardContent: {
+    paddingVertical: 12,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#4caf50',
+    marginRight: 12,
+  },
+  locationTextContainer: {
     flex: 1,
   },
-  fab: {
+  locationLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
+  },
+  locationText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  rideOptionsContainer: {
     position: 'absolute',
-    top: 60,
-    right: 20,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
+    elevation: 8,
   },
-  driverMarker: {
+  rideTypeContainer: {
+    marginBottom: 16,
+  },
+  rideTypeChip: {
+    marginRight: 8,
+  },
+  fareContainer: {
+    flexDirection: 'column',
+    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
+  fareRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fareLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  fareAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2196f3',
+  },
+  fareSubtext: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  requestButton: {
+    paddingVertical: 8,
+  },
+  clearFab: {
+    position: 'absolute',
+    top: 100,
+    right: 16,
+  },
+  locationFab: {
+    position: 'absolute',
+    bottom: 200,
+    right: 16,
+  },
+  calloutContainer: {
+    minWidth: 150,
+  },
+  calloutTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  calloutSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  searchModal: {
     backgroundColor: 'white',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2196F3',
-  },
-  driverText: {
-    fontSize: 20,
-  },
-  modalContent: {
-    margin: 20,
-  },
-  searchingContent: {
-    alignItems: 'center',
     padding: 20,
+    margin: 20,
+    borderRadius: 12,
+  },
+  searchTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  searchInput: {
+    marginBottom: 16,
+  },
+  searchButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  searchButton: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  searchingModal: {
+    backgroundColor: 'white',
+    padding: 30,
+    margin: 40,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   searchingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
     marginTop: 16,
-    marginBottom: 8,
+    textAlign: 'center',
+  },
+  searchingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
   },
   cancelButton: {
     marginTop: 20,

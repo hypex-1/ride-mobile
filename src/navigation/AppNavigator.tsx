@@ -13,6 +13,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import HomeScreen from '../screens/rider/HomeScreen';
 import RideTrackingScreen from '../screens/rider/RideTrackingScreen';
 import RideReceiptScreen from '../screens/rider/RideReceiptScreen';
+import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,6 +45,11 @@ const AppNavigator: React.FC = () => {
                 name="Home" 
                 component={HomeScreen}
                 options={{ title: 'Find a Ride', headerShown: true }}
+              />
+              <Stack.Screen 
+                name="DriverHome" 
+                component={DriverHomeScreen}
+                options={{ title: 'Driver Dashboard', headerShown: true }}
               />
               <Stack.Screen 
                 name="RideTracking" 
