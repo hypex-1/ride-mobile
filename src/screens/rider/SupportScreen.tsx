@@ -1,152 +1,313 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, ScrollView, View } from 'react-native';
-import { Surface, Text, Button, List, Divider, IconButton } from 'react-native-paper';
-import { useAppTheme, spacing, radii } from '../../theme';
-import type { AppTheme } from '../../theme';
+import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { Text, IconButton } from 'react-native-paper';
+import { spacing, radii } from '../../theme';
 import type { SupportScreenProps } from '../../types/navigation';
 
 const helpTopics = [
-  { id: 'payment', title: 'Payment issues', description: 'Missing charges, refunds, receipts' },
-  { id: 'safety', title: 'Safety & incidents', description: 'Emergency support, report a driver' },
-  { id: 'account', title: 'Account & data', description: 'Update details, privacy preferences' },
-  { id: 'lost', title: 'Lost items', description: 'Contact your driver about lost property' },
+  { id: 'payment', title: 'Payment issues', description: 'Missing charges, refunds, receipts', icon: '💳' },
+  { id: 'safety', title: 'Safety & incidents', description: 'Emergency support, report a driver', icon: '🛡️' },
+  { id: 'account', title: 'Account & data', description: 'Update details, privacy preferences', icon: '👤' },
+  { id: 'lost', title: 'Lost items', description: 'Contact your driver about lost property', icon: '🎒' },
 ];
 
 const quickActions = [
-  { id: 'emergency', icon: 'alert-decagram', label: 'Emergency', color: '#DC2626' },
-  { id: 'call', icon: 'phone', label: 'Call support', color: '#2563EB' },
-  { id: 'chat', icon: 'message-text', label: 'Chat with us', color: '#16A34A' },
+  { id: 'emergency', icon: '🚨', label: 'Emergency', color: '#DC2626' },
+  { id: 'call', icon: '📞', label: 'Call Support', color: '#34D186' },
+  { id: 'chat', icon: '💬', label: 'Live Chat', color: '#3B82F6' },
 ];
 
-const SupportScreen: React.FC<SupportScreenProps> = () => {
-  const theme = useAppTheme();
-  const styles = React.useMemo(() => createStyles(theme), [theme]);
-
+const SupportScreen: React.FC<SupportScreenProps> = ({ navigation }) => {
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Surface elevation={1} style={styles.heroCard}>
-          <View style={styles.heroHeader}>
-            <Text style={styles.heroTitle}>Need help?</Text>
-            <Text style={styles.heroSubtitle}>We’re here around the clock. Reach out any time.</Text>
-          </View>
-          <View style={styles.quickRow}>
-            {quickActions.map(action => (
-              <Surface key={action.id} style={[styles.quickAction, { borderColor: action.color }]}> 
-                <IconButton icon={action.icon} iconColor={action.color} size={24} />
-                <Text style={styles.quickLabel}>{action.label}</Text>
-              </Surface>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Header */}
+      <SafeAreaView style={styles.header}>
+        <View style={styles.headerContent}>
+          <IconButton
+            icon="arrow-left"
+            iconColor="#000000"
+            size={24}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          />
+          <Text style={styles.headerTitle}>Support</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+      </SafeAreaView>
+
+      {/* Content */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <Text style={styles.sectionTitle}>Quick actions</Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity key={action.id} style={[styles.quickActionCard, { borderLeftColor: action.color }]}>
+                <Text style={styles.quickActionIcon}>{action.icon}</Text>
+                <Text style={styles.quickActionLabel}>{action.label}</Text>
+              </TouchableOpacity>
             ))}
           </View>
-        </Surface>
+        </View>
 
-        <Surface elevation={0} style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Popular topics</Text>
-            <Button mode="text">See all</Button>
+        {/* Help Topics */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Help topics</Text>
+          <View style={styles.topicsList}>
+            {helpTopics.map((topic, index) => (
+              <TouchableOpacity key={topic.id} style={styles.topicItem}>
+                <View style={styles.topicIcon}>
+                  <Text style={styles.topicIconText}>{topic.icon}</Text>
+                </View>
+                <View style={styles.topicInfo}>
+                  <Text style={styles.topicTitle}>{topic.title}</Text>
+                  <Text style={styles.topicDescription}>{topic.description}</Text>
+                </View>
+                <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+              </TouchableOpacity>
+            ))}
           </View>
-          {helpTopics.map(topic => (
-            <React.Fragment key={topic.id}>
-              <List.Item
-                title={topic.title}
-                description={topic.description}
-                left={(props) => <List.Icon {...props} icon="help-circle" />}
-                right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              />
-              <Divider style={styles.divider} />
-            </React.Fragment>
-          ))}
-        </Surface>
+        </View>
 
-        <Surface elevation={0} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Support tickets</Text>
-          <Text style={styles.emptyState}>You don’t have any open requests.</Text>
-          <Button mode="outlined" style={styles.newTicketButton}>Create a ticket</Button>
-        </Surface>
+        {/* Contact Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Contact us</Text>
+          
+          <TouchableOpacity style={styles.contactItem}>
+            <View style={styles.contactIcon}>
+              <Text style={styles.contactIconText}>📧</Text>
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactTitle}>Email</Text>
+              <Text style={styles.contactValue}>support@ridemobile.tn</Text>
+            </View>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.contactItem}>
+            <View style={styles.contactIcon}>
+              <Text style={styles.contactIconText}>📞</Text>
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactTitle}>Phone</Text>
+              <Text style={styles.contactValue}>+216 71 123 456</Text>
+            </View>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.contactItem}>
+            <View style={styles.contactIcon}>
+              <Text style={styles.contactIconText}>🕒</Text>
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactTitle}>Support hours</Text>
+              <Text style={styles.contactValue}>24/7 available</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* FAQ Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Frequently asked questions</Text>
+          
+          <TouchableOpacity style={styles.faqItem}>
+            <Text style={styles.faqQuestion}>How do I cancel a ride?</Text>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.faqItem}>
+            <Text style={styles.faqQuestion}>How are ride fares calculated?</Text>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.faqItem}>
+            <Text style={styles.faqQuestion}>What if I lost an item in the car?</Text>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.faqItem}>
+            <Text style={styles.faqQuestion}>How do I report a driver?</Text>
+            <IconButton icon="chevron-right" size={20} iconColor="#6B7280" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
-const createStyles = (theme: AppTheme) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    scrollContent: {
-      padding: spacing(2),
-      paddingBottom: spacing(4),
-    },
-    heroCard: {
-      borderRadius: radii.xl,
-      padding: spacing(3),
-      backgroundColor: theme.colors.surface,
-      marginBottom: spacing(2.5),
-    },
-    heroHeader: {
-      marginBottom: spacing(2),
-    },
-    heroTitle: {
-      fontSize: 28,
-      fontWeight: '700',
-      color: theme.colors.onSurface,
-    },
-    heroSubtitle: {
-      marginTop: spacing(1),
-      fontSize: 16,
-      color: theme.colors.onSurfaceVariant,
-    },
-    quickRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    quickAction: {
-      flex: 1,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      marginHorizontal: spacing(0.5),
-      paddingVertical: spacing(1.5),
-      alignItems: 'center',
-    },
-    quickLabel: {
-      fontSize: 13,
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    sectionCard: {
-      borderRadius: radii.lg,
-      backgroundColor: theme.colors.surface,
-      paddingHorizontal: spacing(2),
-      paddingVertical: spacing(2.5),
-      marginBottom: spacing(2),
-    },
-    sectionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: spacing(1.25),
-    },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.onSurface,
-    },
-    divider: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: theme.colors.outline,
-    },
-    emptyState: {
-      textAlign: 'center',
-      color: theme.colors.onSurfaceVariant,
-      marginTop: spacing(1),
-      marginBottom: spacing(2),
-    },
-    newTicketButton: {
-      alignSelf: 'center',
-      paddingHorizontal: spacing(4),
-      borderRadius: radii.pill,
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+
+  // Header
+  header: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing(2),
+    paddingVertical: spacing(1.5),
+  },
+  backButton: {
+    margin: 0,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 48,
+  },
+
+  // Content
+  scrollView: {
+    flex: 1,
+  },
+
+  // Sections
+  quickActionsSection: {
+    marginHorizontal: spacing(3),
+    marginTop: spacing(2),
+    marginBottom: spacing(2),
+  },
+  section: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: spacing(3),
+    marginBottom: spacing(2),
+    borderRadius: radii.lg,
+    padding: spacing(3),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E7EB',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: spacing(2),
+  },
+
+  // Quick Actions
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: spacing(2),
+  },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: radii.lg,
+    padding: spacing(2.5),
+    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E7EB',
+    borderLeftWidth: 4,
+  },
+  quickActionIcon: {
+    fontSize: 28,
+    marginBottom: spacing(1),
+  },
+  quickActionLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+    textAlign: 'center',
+  },
+
+  // Help Topics
+  topicsList: {
+    gap: spacing(1),
+  },
+  topicItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing(1.5),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F3F4F6',
+  },
+  topicIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing(2),
+  },
+  topicIconText: {
+    fontSize: 20,
+  },
+  topicInfo: {
+    flex: 1,
+  },
+  topicTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+    marginBottom: spacing(0.25),
+  },
+  topicDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+
+  // Contact Items
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing(1.5),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F3F4F6',
+  },
+  contactIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing(2),
+  },
+  contactIconText: {
+    fontSize: 20,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+    marginBottom: spacing(0.25),
+  },
+  contactValue: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+
+  // FAQ Items
+  faqItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing(2),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F3F4F6',
+  },
+  faqQuestion: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+});
 
 export default SupportScreen;

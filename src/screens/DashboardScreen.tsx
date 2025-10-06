@@ -1,14 +1,14 @@
 import React from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
-import { Card, Button, Avatar, Text, Chip } from 'react-native-paper';
+import { View, StyleSheet, Alert, ScrollView, StatusBar } from 'react-native';
+import { Surface, Button, Avatar, Text, IconButton, useTheme } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { DashboardScreenProps } from '../types/navigation';
-import { useAppTheme, spacing, radii } from '../theme';
-import type { AppTheme } from '../theme';
+import { spacing, radii } from '../theme';
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
-  const theme = useAppTheme();
+  const theme = useTheme();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const handleLogout = async () => {
@@ -40,38 +40,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
   };
 
-  const handleViewEarnings = () => {
-    Alert.alert(
-      '💰 Earnings Dashboard',
-      'Earnings dashboard coming soon!\n\nHere you will see:\n• Daily earnings breakdown\n• Weekly/monthly reports\n• Payment history\n• Tax summaries',
-      [{ text: 'Got it', style: 'default' }]
-    );
-  };
-
-  const handleVehicleSettings = () => {
-    Alert.alert(
-      '🔧 Vehicle Settings',
-      'Vehicle management coming soon!\n\nHere you can:\n• Update vehicle information\n• Upload inspection documents\n• Manage insurance details\n• Update license plate',
-      [{ text: 'Got it', style: 'default' }]
-    );
-  };
-
-  const handleRideHistory = () => {
-    Alert.alert(
-      '📋 Ride History',
-      'Ride history coming soon!\n\nHere you will see:\n• Past rides\n• Trip details\n• Receipts\n• Ratings and reviews',
-      [{ text: 'Got it', style: 'default' }]
-    );
-  };
-
-  const handlePaymentMethods = () => {
-    Alert.alert(
-      '💳 Payment Methods',
-      'Payment methods coming soon!\n\nHere you can:\n• Add credit/debit cards\n• Manage digital wallets\n• Set default payment\n• View payment history',
-      [{ text: 'Got it', style: 'default' }]
-    );
-  };
-
   if (!user) {
     return null; // This shouldn't happen, but just in case
   }
@@ -79,352 +47,343 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const isDriver = user.role?.toLowerCase() === 'driver';
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={theme.colors.surface} barStyle="dark-content" />
+      
+      {/* Header - Bolt Style */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Account</Text>
+        <IconButton
+          icon="logout"
+          size={24}
+          onPress={handleLogout}
+          style={styles.logoutIcon}
+        />
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-      {/* User Profile Card */}
-      <Card style={styles.profileCard} mode="elevated">
-        <Card.Content>
-          <View style={styles.profileHeader}>
+        {/* Profile Section - Bolt Style */}
+        <Surface elevation={1} style={styles.profileSection}>
+          <View style={styles.profileRow}>
             <Avatar.Text
-              size={72}
+              size={56}
               label={user.name ? user.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase() : user.email.charAt(0).toUpperCase()}
+              style={styles.avatar}
             />
             <View style={styles.profileInfo}>
-              <Text variant="titleMedium" style={styles.profileName}>
+              <Text style={styles.userName}>
                 {user.name || 'User'}
               </Text>
-              <Text variant="bodyMedium" style={styles.profileEmail}>
+              <Text style={styles.userEmail}>
                 {user.email}
               </Text>
-              <Chip
-                mode="outlined"
-                style={[styles.roleChip, isDriver ? styles.driverChip : styles.riderChip]}
-                textStyle={styles.roleChipText}
-              >
+              <Text style={styles.userRole}>
                 {isDriver ? 'Driver' : 'Rider'}
-              </Chip>
+              </Text>
             </View>
           </View>
+        </Surface>
 
-          {isDriver && (
-            <View style={styles.driverDetails}>
-              <Text variant="bodySmall" style={styles.driverDetailText}>Vehicle · Toyota Corolla 2020</Text>
-              <Text variant="bodySmall" style={styles.driverDetailText}>Plate · 123 TUN 456</Text>
-              <Text variant="bodySmall" style={styles.driverDetailText}>Rating · 4.8 (245 rides)</Text>
-              <Text variant="bodySmall" style={styles.driverDetailText}>Today · 85.50 TND earned</Text>
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-
-      {/* Role-specific Actions */}
-      <Card style={styles.sectionCard} mode="elevated">
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            {isDriver ? 'Driver workspace' : 'Plan your next ride'}
-          </Text>
-          <Text variant="bodyMedium" style={styles.sectionSubtitle}>
-            {isDriver
-              ? 'Go online to start accepting new ride requests.'
-              : 'Pick a destination and we will match you with nearby drivers.'}
-          </Text>
-
+        {/* Quick Actions - Bolt Style */}
+        <Surface elevation={1} style={styles.actionSection}>
           {isDriver ? (
             <>
               <Button
                 mode="contained"
-                style={styles.primaryAction}
+                style={styles.primaryButton}
                 contentStyle={styles.buttonContent}
-                onPress={() => navigation.navigate('DriverHome')}
+                onPress={() => (navigation as any).navigate('DriverHome')}
                 icon="car"
               >
                 Go online
               </Button>
-              <Button
-                mode="outlined"
-                style={styles.secondaryAction}
-                contentStyle={styles.buttonContent}
-                onPress={handleViewEarnings}
-                icon="cash"
-              >
-                View earnings
-              </Button>
-              <Button
-                mode="outlined"
-                style={styles.secondaryAction}
-                contentStyle={styles.buttonContent}
-                onPress={handleVehicleSettings}
-                icon="car-cog"
-              >
-                Vehicle settings
-              </Button>
+              <View style={styles.actionGrid}>
+                <Button
+                  mode="text"
+                  style={styles.actionButton}
+                  contentStyle={styles.actionButtonContent}
+                  icon="cash"
+                  onPress={() => Alert.alert('Earnings', 'Coming soon')}
+                >
+                  Earnings
+                </Button>
+                <Button
+                  mode="text"
+                  style={styles.actionButton}
+                  contentStyle={styles.actionButtonContent}
+                  icon="car-cog"
+                  onPress={() => Alert.alert('Vehicle', 'Coming soon')}
+                >
+                  Vehicle
+                </Button>
+              </View>
             </>
           ) : (
             <>
               <Button
                 mode="contained"
-                style={styles.primaryAction}
+                style={styles.primaryButton}
                 contentStyle={styles.buttonContent}
-                onPress={() => navigation.navigate('Home')}
+                onPress={() => (navigation as any).navigate('Home')}
                 icon="map-marker"
               >
-                Request a ride
+                Book a ride
               </Button>
-              <Button
-                mode="outlined"
-                style={styles.secondaryAction}
-                contentStyle={styles.buttonContent}
-                onPress={handleRideHistory}
-                icon="history"
-              >
-                Ride history
-              </Button>
-              <Button
-                mode="outlined"
-                style={styles.secondaryAction}
-                contentStyle={styles.buttonContent}
-                onPress={handlePaymentMethods}
-                icon="credit-card"
-              >
-                Payment methods
-              </Button>
-            </>
-          )}
-        </Card.Content>
-      </Card>
-
-      {/* Account Status */}
-      <Card style={styles.sectionCard} mode="elevated">
-        <Card.Content>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            {isDriver ? 'Driver status' : 'Account status'}
-          </Text>
-
-          {isDriver ? (
-            <View style={styles.statusGrid}>
-              <View style={styles.statusRow}>
-                <Text variant="bodyMedium" style={styles.statusLabel}>Availability</Text>
-                <Chip mode="outlined" style={styles.statusChip} textStyle={styles.statusChipText}>
-                  Online
-                </Chip>
-              </View>
-              <View style={styles.statusRow}>
-                <Text variant="bodyMedium" style={styles.statusLabel}>License</Text>
-                <Chip mode="outlined" style={styles.statusChip} textStyle={styles.statusChipText}>
-                  Verified
-                </Chip>
-              </View>
-              <View style={styles.statusRow}>
-                <Text variant="bodyMedium" style={styles.statusLabel}>Inspection</Text>
-                <Chip mode="outlined" style={styles.statusChip} textStyle={styles.statusChipText}>
-                  Valid · Dec 2025
-                </Chip>
-              </View>
-              <View style={styles.statusRow}>
-                <Text variant="bodyMedium" style={styles.statusLabel}>Background</Text>
-                <Chip mode="outlined" style={styles.statusChip} textStyle={styles.statusChipText}>
-                  Cleared
-                </Chip>
-              </View>
-            </View>
-          ) : (
-            <>
-              <View style={styles.statusRow}>
-                <Text variant="bodyMedium" style={styles.statusLabel}>Email verification</Text>
-                <Chip
-                  mode="outlined"
-                  style={[styles.statusChip, !user.isVerified && styles.statusChipWarning]}
-                  textStyle={[styles.statusChipText, !user.isVerified && styles.statusChipWarningText]}
-                >
-                  {user.isVerified ? 'Verified' : 'Pending'}
-                </Chip>
-              </View>
-
-              {!user.isVerified && (
+              <View style={styles.actionGrid}>
                 <Button
                   mode="text"
-                  textColor={theme.colors.primary}
-                  style={styles.verifyButton}
-                  onPress={() => {/* TODO: Navigate to email verification */}}
+                  style={styles.actionButton}
+                  contentStyle={styles.actionButtonContent}
+                  icon="history"
+                  onPress={() => (navigation as any).navigate('RideHistory')}
                 >
-                  Verify email
+                  Your trips
                 </Button>
-              )}
+                <Button
+                  mode="text"
+                  style={styles.actionButton}
+                  contentStyle={styles.actionButtonContent}
+                  icon="credit-card"
+                  onPress={() => Alert.alert('Payment', 'Coming soon')}
+                >
+                  Payment
+                </Button>
+              </View>
             </>
           )}
-        </Card.Content>
-      </Card>
+        </Surface>
 
-      {/* Logout Button */}
-      <Button
-        mode="outlined"
-        onPress={handleLogout}
-        style={styles.logoutButton}
-        contentStyle={styles.buttonContent}
-      >
-        Sign out
-      </Button>
+        {/* Settings List - Bolt Style */}
+        <Surface elevation={1} style={styles.settingsSection}>
+          <View style={styles.settingsItem}>
+            <IconButton icon="account-circle" size={24} style={styles.settingsIcon} />
+            <Text style={styles.settingsText}>Edit profile</Text>
+            <IconButton icon="chevron-right" size={20} style={styles.chevronIcon} />
+          </View>
+          
+          <View style={styles.settingsDivider} />
+          
+          <View style={styles.settingsItem}>
+            <IconButton icon="shield-check" size={24} style={styles.settingsIcon} />
+            <Text style={styles.settingsText}>Safety</Text>
+            <IconButton icon="chevron-right" size={20} style={styles.chevronIcon} />
+          </View>
+          
+          <View style={styles.settingsDivider} />
+          
+          <View style={styles.settingsItem}>
+            <IconButton icon="help-circle" size={24} style={styles.settingsIcon} />
+            <Text style={styles.settingsText}>Help</Text>
+            <IconButton icon="chevron-right" size={20} style={styles.chevronIcon} />
+          </View>
+          
+          <View style={styles.settingsDivider} />
+          
+          <View style={styles.settingsItem}>
+            <IconButton icon="cog" size={24} style={styles.settingsIcon} />
+            <Text style={styles.settingsText}>Settings</Text>
+            <IconButton icon="chevron-right" size={20} style={styles.chevronIcon} />
+          </View>
+        </Surface>
 
-      {/* Debug Info (Development only) */}
-      {__DEV__ && (
-  <Card style={styles.debugCard} mode="elevated">
-          <Card.Content>
-            <Text variant="titleSmall" style={styles.debugTitle}>Debug info</Text>
-            <Text variant="bodySmall" style={styles.debugText}>User ID: {user.id}</Text>
-            <Text variant="bodySmall" style={styles.debugText}>Role: {user.role} (isDriver: {isDriver.toString()})</Text>
-            <Text variant="bodySmall" style={styles.debugText}>Created: {new Date(user.createdAt).toLocaleDateString()}</Text>
-          </Card.Content>
-        </Card>
-      )}
+        {/* Driver Status (for drivers only) */}
+        {isDriver && (
+          <Surface elevation={1} style={styles.statusSection}>
+            <Text style={styles.statusTitle}>Driver status</Text>
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>License</Text>
+              <Text style={styles.statusValue}>Verified</Text>
+            </View>
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>Vehicle inspection</Text>
+              <Text style={styles.statusValue}>Valid until Dec 2025</Text>
+            </View>
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>Background check</Text>
+              <Text style={styles.statusValue}>Cleared</Text>
+            </View>
+          </Surface>
+        )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
-const createStyles = (theme: AppTheme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
+    
+    // Header - Bolt Style
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing(3),
+      paddingVertical: spacing(2),
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.outline,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: theme.colors.onSurface,
+    },
+    logoutIcon: {
+      margin: 0,
+    },
+
     scrollView: {
       flex: 1,
     },
     scrollContent: {
-      padding: spacing(3),
+      padding: spacing(2),
       paddingBottom: spacing(4),
     },
-    profileCard: {
-      marginBottom: spacing(2),
-      borderRadius: radii.lg,
+
+    // Profile Section - Bolt Style
+    profileSection: {
       backgroundColor: theme.colors.surface,
-      borderWidth: 1,
+      borderRadius: radii.lg,
+      padding: spacing(3),
+      marginBottom: spacing(2),
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.outline,
     },
-    profileHeader: {
+    profileRow: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    avatar: {
+      backgroundColor: theme.colors.primary,
     },
     profileInfo: {
       flex: 1,
       marginLeft: spacing(2),
     },
-    profileName: {
+    userName: {
+      fontSize: 20,
+      fontWeight: '700',
       color: theme.colors.onSurface,
-      fontWeight: '600',
+      marginBottom: spacing(0.5),
     },
-    profileEmail: {
-      marginTop: spacing(0.5),
-      color: theme.colors.onSurfaceVariant,
-    },
-    roleChip: {
-      marginTop: spacing(1),
-      alignSelf: 'flex-start',
-      borderRadius: radii.pill,
-      borderColor: theme.colors.outline,
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-    roleChipText: {
-      fontWeight: '600',
-      color: theme.colors.primary,
-    },
-    driverChip: {
-      backgroundColor: theme.colors.primaryContainer,
-      borderColor: theme.colors.primary,
-    },
-    riderChip: {
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-    driverDetails: {
-      marginTop: spacing(2),
-      paddingTop: spacing(1.5),
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.outline,
-    },
-    driverDetailText: {
+    userEmail: {
+      fontSize: 14,
       color: theme.colors.onSurfaceVariant,
       marginBottom: spacing(0.5),
     },
-    sectionCard: {
-      marginBottom: spacing(2),
-      borderRadius: radii.lg,
+    userRole: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: theme.colors.primary,
+      backgroundColor: theme.colors.primaryContainer,
+      paddingHorizontal: spacing(1.5),
+      paddingVertical: spacing(0.5),
+      borderRadius: radii.sm,
+      alignSelf: 'flex-start',
+    },
+
+    // Action Section - Bolt Style
+    actionSection: {
       backgroundColor: theme.colors.surface,
-      borderWidth: 1,
+      borderRadius: radii.lg,
+      padding: spacing(3),
+      marginBottom: spacing(2),
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.outline,
     },
-    sectionTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-      marginBottom: spacing(1),
-    },
-    sectionSubtitle: {
-      color: theme.colors.onSurfaceVariant,
+    primaryButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: radii.md,
       marginBottom: spacing(2),
     },
-    primaryAction: {
-      borderRadius: radii.md,
-    },
-    secondaryAction: {
-      marginTop: spacing(1),
-      borderRadius: radii.md,
-    },
     buttonContent: {
-      height: 50,
+      height: 52,
     },
-    statusGrid: {
-      marginTop: spacing(1),
+    actionGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    actionButton: {
+      flex: 1,
+      marginHorizontal: spacing(0.5),
+    },
+    actionButtonContent: {
+      height: 48,
+      flexDirection: 'column',
+    },
+
+    // Settings Section - Bolt Style
+    settingsSection: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing(1),
+      marginBottom: spacing(2),
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.outline,
+    },
+    settingsItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing(1),
+      paddingHorizontal: spacing(2),
+    },
+    settingsIcon: {
+      margin: 0,
+      marginRight: spacing(1),
+    },
+    settingsText: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.onSurface,
+      marginLeft: spacing(1),
+    },
+    chevronIcon: {
+      margin: 0,
+    },
+    settingsDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: theme.colors.outline,
+      marginLeft: spacing(7),
+    },
+
+    // Status Section - Bolt Style (for drivers)
+    statusSection: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing(3),
+      marginBottom: spacing(2),
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.outline,
+    },
+    statusTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      marginBottom: spacing(2),
     },
     statusRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: spacing(0.75),
+      paddingVertical: spacing(1),
     },
     statusLabel: {
-      color: theme.colors.onSurface,
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
       flex: 1,
     },
-    statusChip: {
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-    statusChipText: {
+    statusValue: {
+      fontSize: 14,
+      fontWeight: '500',
       color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    statusChipWarning: {
-      borderColor: theme.colors.error,
-      backgroundColor: 'rgba(220,38,38,0.1)',
-    },
-    statusChipWarningText: {
-      color: theme.colors.error,
-    },
-    verifyButton: {
-      marginTop: spacing(1),
-      alignSelf: 'flex-start',
-    },
-    logoutButton: {
-      marginTop: spacing(1),
-      borderRadius: radii.md,
-      borderColor: theme.colors.outline,
-    },
-    debugCard: {
-      marginTop: spacing(2),
-      borderRadius: radii.lg,
-    },
-    debugTitle: {
-      marginBottom: spacing(1),
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    debugText: {
-      color: theme.colors.onSurfaceVariant,
-      marginBottom: spacing(0.5),
     },
   });
 

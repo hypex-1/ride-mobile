@@ -3,21 +3,23 @@ import {
   View,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
+  SafeAreaView,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import {
   TextInput,
   Button,
   Text,
-  Card,
-  HelperText,
+  IconButton,
 } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginCredentials } from '../../services/auth';
 import { validateEmail } from '../../utils';
 import { useAppTheme, spacing, radii } from '../../theme';
 import type { AppTheme } from '../../theme';
+
+const { height } = Dimensions.get('window');
 
 interface LoginScreenProps {
   navigation: any;
@@ -34,6 +36,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
@@ -59,115 +62,144 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     try {
       await login(credentials);
-      // Navigation will happen automatically via AuthContext
     } catch (error: any) {
       Alert.alert('Login Failed', error.message);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.inner}>
-        <View style={styles.branding}>
-          <Text variant="headlineSmall" style={styles.brandTitle}>
-            Welcome back 👋
-          </Text>
-          <Text variant="bodyMedium" style={styles.brandSubtitle}>
-            Sign in to continue your journey
-          </Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          iconColor={theme.colors.onSurface}
+          onPress={() => navigation.goBack()}
+        />
+        <Text variant="titleMedium" style={styles.headerTitle}>
+          Enter your number
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* Main Content */}
+      <View style={styles.content}>
+        {/* Title */}
+        <Text variant="headlineMedium" style={styles.title}>
+          What's your number?
+        </Text>
+        
+        {/* Subtitle */}
+        <Text variant="bodyLarge" style={styles.subtitle}>
+          We'll text a code to verify your phone.
+        </Text>
+
+        {/* Email Input (using email instead of phone for demo) */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            label="Email"
+            value={credentials.email}
+            onChangeText={(text) => setCredentials({...credentials, email: text})}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+            outlineStyle={styles.inputOutline}
+            contentStyle={styles.inputContent}
+            error={!!errors.email}
+          />
+          {errors.email && (
+            <Text style={styles.errorText}>{errors.email}</Text>
+          )}
         </View>
 
-        <Card style={styles.card} mode="elevated">
-          <Card.Content style={styles.cardContent}>
-            <Text variant="titleMedium" style={styles.formTitle}>
-              Sign in to RideShare
-            </Text>
+        {/* Password Input */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            label="Password"
+            value={credentials.password}
+            onChangeText={(text) => setCredentials({...credentials, password: text})}
+            mode="outlined"
+            secureTextEntry={!passwordVisible}
+            style={styles.input}
+            outlineStyle={styles.inputOutline}
+            contentStyle={styles.inputContent}
+            error={!!errors.password}
+            right={
+              <TextInput.Icon 
+                icon={passwordVisible ? "eye-off" : "eye"}
+                onPress={() => setPasswordVisible(!passwordVisible)}
+              />
+            }
+          />
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
+        </View>
 
-            {/* Email */}
-            <TextInput
-              label="Email"
-              value={credentials.email}
-              onChangeText={(text) => setCredentials({...credentials, email: text})}
-              mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              error={!!errors.email}
-            />
-            <HelperText type="error" visible={!!errors.email}>
-              {errors.email}
-            </HelperText>
-
-            {/* Password */}
-            <TextInput
-              label="Password"
-              value={credentials.password}
-              onChangeText={(text) => setCredentials({...credentials, password: text})}
-              mode="outlined"
-              secureTextEntry
-              style={styles.input}
-              error={!!errors.password}
-            />
-            <HelperText type="error" visible={!!errors.password}>
-              {errors.password}
-            </HelperText>
-
-            {/* Test Login Buttons */}
-            <View style={styles.testSection}>
-              <Text style={styles.testTitle}>Quick Test Login:</Text>
-              <View style={styles.testButtons}>
-                <Button
-                  mode="outlined"
-                  onPress={() => setCredentials({email: 'rider@test.com', password: 'TestPass123!'})}
-                  style={styles.testButton}
-                  compact
-                >
-                  Test Rider
-                </Button>
-                <Button
-                  mode="outlined"
-                  onPress={() => setCredentials({email: 'driver@test.com', password: 'TestPass123!'})}
-                  style={styles.testButton}
-                  compact
-                >
-                  Test Driver
-                </Button>
-              </View>
-            </View>
-
-            {/* Login Button */}
+        {/* Test Login Buttons - Bolt Style */}
+        <View style={styles.testSection}>
+          <Text style={styles.testTitle}>Quick Test Login:</Text>
+          <View style={styles.testButtons}>
             <Button
-              mode="contained"
-              onPress={handleLogin}
-              loading={isLoading}
-              disabled={isLoading}
-              style={styles.button}
-              contentStyle={styles.buttonContent}
+              mode="outlined"
+              onPress={() => setCredentials({email: 'rider@test.com', password: 'TestPass123!'})}
+              style={styles.testButton}
+              labelStyle={styles.testButtonLabel}
+              compact
             >
-              Sign In
+              Test Rider
             </Button>
-
-            {/* Register Link */}
-            <View style={styles.registerLink}>
-              <Text variant="bodyMedium" style={styles.registerText}>
-                Don't have an account?
-              </Text>
-              <Button
-                mode="text"
-                onPress={() => navigation.navigate('Register')}
-                compact
-                textColor={theme.colors.primary}
-              >
-                Sign Up
-              </Button>
-            </View>
-          </Card.Content>
-        </Card>
+            <Button
+              mode="outlined"
+              onPress={() => setCredentials({email: 'driver@test.com', password: 'TestPass123!'})}
+              style={styles.testButton}
+              labelStyle={styles.testButtonLabel}
+              compact
+            >
+              Test Driver
+            </Button>
+          </View>
+        </View>
       </View>
-    </KeyboardAvoidingView>
+
+      {/* Bottom Section */}
+      <View style={styles.bottomSection}>
+        {/* Continue Button */}
+        <Button
+          mode="contained"
+          onPress={handleLogin}
+          loading={isLoading}
+          disabled={isLoading || !credentials.email || !credentials.password}
+          style={[
+            styles.continueButton,
+            (!credentials.email || !credentials.password) && styles.continueButtonDisabled
+          ]}
+          labelStyle={styles.continueButtonLabel}
+          contentStyle={styles.continueButtonContent}
+        >
+          Continue
+        </Button>
+
+        {/* Sign Up Link */}
+        <View style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>
+            Don't have an account?{' '}
+          </Text>
+          <Button
+            mode="text"
+            onPress={() => navigation.navigate('Register')}
+            compact
+            labelStyle={styles.signUpButton}
+          >
+            Sign up
+          </Button>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -177,43 +209,58 @@ const createStyles = (theme: AppTheme) =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    inner: {
-      flex: 1,
-      justifyContent: 'center',
-      padding: spacing(3),
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(1),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outline,
     },
-    branding: {
+    headerTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    headerSpacer: {
+      width: 40,
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: spacing(3),
+      paddingTop: spacing(4),
+    },
+    title: {
+      color: theme.colors.onSurface,
+      fontWeight: '700',
+      marginBottom: spacing(2),
+    },
+    subtitle: {
+      color: theme.colors.onSurfaceVariant,
+      marginBottom: spacing(4),
+      lineHeight: 24,
+    },
+    inputContainer: {
       marginBottom: spacing(3),
     },
-    brandTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    brandSubtitle: {
-      marginTop: spacing(0.5),
-      color: theme.colors.onSurfaceVariant,
-    },
-    card: {
-      borderRadius: radii.lg,
+    input: {
       backgroundColor: theme.colors.surface,
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      overflow: 'hidden',
     },
-    cardContent: {
+    inputOutline: {
+      borderWidth: 1,
+      borderRadius: radii.md,
+    },
+    inputContent: {
       paddingVertical: spacing(2),
     },
-    formTitle: {
-      marginBottom: spacing(2),
-      textAlign: 'center',
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    input: {
-      marginBottom: spacing(1),
+    errorText: {
+      color: theme.colors.error,
+      fontSize: 12,
+      marginTop: spacing(0.5),
+      marginLeft: spacing(2),
     },
     testSection: {
-      marginVertical: spacing(2),
+      marginVertical: spacing(3),
       padding: spacing(2),
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: radii.md,
@@ -223,34 +270,57 @@ const createStyles = (theme: AppTheme) =>
     testTitle: {
       fontSize: 12,
       fontWeight: '600',
-      marginBottom: spacing(1),
+      marginBottom: spacing(1.5),
       textAlign: 'center',
       color: theme.colors.onSurfaceVariant,
     },
     testButtons: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      gap: spacing(2),
     },
     testButton: {
       flex: 1,
       borderRadius: radii.sm,
-      marginHorizontal: spacing(0.5),
+      borderColor: theme.colors.outline,
     },
-    button: {
-      marginTop: spacing(2),
+    testButtonLabel: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+    },
+    bottomSection: {
+      paddingHorizontal: spacing(3),
+      paddingBottom: spacing(4),
+    },
+    continueButton: {
+      backgroundColor: theme.colors.primary,
       borderRadius: radii.md,
+      marginBottom: spacing(3),
     },
-    buttonContent: {
-      height: 52,
+    continueButtonDisabled: {
+      backgroundColor: theme.colors.outline,
     },
-    registerLink: {
+    continueButtonLabel: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    continueButtonContent: {
+      height: 56,
+    },
+    signUpContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: spacing(2),
     },
-    registerText: {
+    signUpText: {
       color: theme.colors.onSurfaceVariant,
+      fontSize: 14,
+    },
+    signUpButton: {
+      color: theme.colors.primary,
+      fontSize: 14,
+      fontWeight: '600',
     },
   });
 

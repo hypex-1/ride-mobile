@@ -3,25 +3,34 @@ import { DefaultTheme as NavigationDefaultTheme, Theme as NavigationTheme } from
 import type { MD3Theme } from 'react-native-paper';
 
 const palette = {
-  primary: '#2563EB',
-  primaryMuted: '#9AB7FF',
-  secondary: '#0F172A',
-  background: '#F6F8FC',
+  // Bolt's exact color scheme
+  primary: '#34D186', // Bolt green
+  primaryMuted: '#6EE5A7',
+  primaryDark: '#2CAB73',
+  secondary: '#1A1A1A',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceVariant: '#EEF2FF',
-  outline: '#E2E8F0',
-  success: '#16A34A',
+  surfaceVariant: '#F8F9FA',
+  outline: '#E5E7EB',
+  outlineDark: '#D1D5DB',
+  success: '#34D186',
   warning: '#F59E0B',
-  danger: '#DC2626',
-  info: '#0284C7',
-  muted: '#64748B',
+  danger: '#EF4444',
+  info: '#3B82F6',
+  muted: '#6B7280',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textLight: '#9CA3AF',
+  mapGreen: '#34D186',
+  rideGreen: '#25D366',
+  shadowColor: '#000000',
 } as const;
 
 const basePaperTheme = MD3LightTheme as MD3Theme;
 
 export const paperTheme: MD3Theme = {
   ...basePaperTheme,
-  roundness: 18,
+  roundness: 12, // Bolt's slightly rounded corners
   colors: {
     ...basePaperTheme.colors,
     primary: palette.primary,
@@ -35,11 +44,11 @@ export const paperTheme: MD3Theme = {
     surface: palette.surface,
     surfaceVariant: palette.surfaceVariant,
     outline: palette.outline,
-    outlineVariant: palette.outline,
+    outlineVariant: palette.outlineDark,
     error: palette.danger,
     onError: '#FFFFFF',
-    onSurface: palette.secondary,
-    onSurfaceVariant: palette.muted,
+    onSurface: palette.textPrimary,
+    onSurfaceVariant: palette.textSecondary,
   },
 };
 
@@ -61,11 +70,11 @@ export const navigationTheme: NavigationTheme = {
 export const spacing = (factor = 1) => factor * 8;
 
 export const radii = {
-  xs: 6,
-  sm: 10,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  xs: 4,
+  sm: 8, 
+  md: 12, // Bolt's standard radius
+  lg: 16,
+  xl: 24,
   pill: 999,
 } as const;
 

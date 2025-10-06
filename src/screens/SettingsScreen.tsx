@@ -1,19 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, SafeAreaView, ScrollView, StatusBar } from 'react-native';
 import {
   Surface,
   Text,
   Button,
-  List,
-  Avatar,
-  Divider,
-  Switch,
-  TouchableRipple
+  IconButton,
+  TouchableRipple,
+  Switch
 } from 'react-native-paper';
 import { useAuth } from '../contexts/AuthContext';
 import { SettingsScreenProps } from '../types/navigation';
 import { useAppTheme, spacing, radii } from '../theme';
-import type { AppTheme } from '../theme';
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -31,290 +28,306 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     }
   };
 
-  const handleProfileEdit = () => {
-    navigation.navigate('Profile');
-  };
+  const menuItems = [
+    { id: 'profile', title: 'Profile', icon: 'account-outline', route: 'Profile' as const },
+    { id: 'payment', title: 'Payment methods', icon: 'credit-card-outline', route: 'PaymentMethods' as const },
+    { id: 'history', title: 'Trip history', icon: 'history', route: 'RideHistory' as const },
+    { id: 'saved', title: 'Saved places', icon: 'heart-outline', route: 'SavedPlaces' as const },
+    { id: 'support', title: 'Support', icon: 'help-circle-outline', route: 'Support' as const },
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Header */}
+      <SafeAreaView style={styles.header}>
+        <View style={styles.headerContent}>
+          <IconButton
+            icon="arrow-left"
+            iconColor="#000000"
+            size={24}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          />
+          <Text style={styles.headerTitle}>Settings</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+      </SafeAreaView>
+
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <Surface elevation={0} style={styles.profileHeader}>
+        {/* Profile Section */}
+        <Surface style={styles.profileCard} elevation={0}>
           <TouchableRipple
-            style={styles.profileCard}
-            onPress={handleProfileEdit}
-            borderless
+            onPress={() => navigation.navigate('Profile')}
+            style={styles.profileTouchable}
           >
             <View style={styles.profileContent}>
-              <Avatar.Text
-                size={64}
-                label={user?.name
-                  ?.split(' ')
-                  .map(part => part[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase() || 'U'}
-                style={styles.avatar}
-              />
-              <View style={styles.profileInfo}>
-                <Text variant="titleLarge" style={styles.userName}>
-                  {user?.name || 'User'}
-                </Text>
-                <Text variant="bodyMedium" style={styles.userEmail}>
-                  {user?.email || 'user@example.com'}
-                </Text>
-                <Text variant="bodySmall" style={styles.userRole}>
-                  {user?.role === 'RIDER' ? 'Rider Account' : 'Driver Account'}
+              <View style={styles.profileAvatar}>
+                <Text style={styles.profileAvatarText}>
+                  {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
                 </Text>
               </View>
-              <List.Icon icon="chevron-right" color={theme.colors.onSurfaceVariant} />
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{user?.name || 'User'}</Text>
+                <Text style={styles.profileEmail}>{user?.email}</Text>
+                <Text style={styles.profileRole}>
+                  {user?.role === 'RIDER' ? 'Rider account' : 'Driver account'}
+                </Text>
+              </View>
+              <View style={styles.chevronContainer}>
+                <Text style={styles.chevron}>›</Text>
+              </View>
             </View>
           </TouchableRipple>
         </Surface>
 
-        {/* Account Section */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Account
-          </Text>
-          
-          <Surface elevation={0} style={styles.listCard}>
-            <List.Item
-              title="Personal Information"
-              description="Name, email, phone number"
-              left={(props) => <List.Icon {...props} icon="account-edit" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={handleProfileEdit}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Payment Methods"
-              description="Manage cards and payment options"
-              left={(props) => <List.Icon {...props} icon="credit-card" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('PaymentMethods')}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Ride History"
-              description="View past rides and receipts"
-              left={(props) => <List.Icon {...props} icon="history" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('RideHistory')}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Saved Places"
-              description="Manage favorite pickup spots"
-              left={(props) => <List.Icon {...props} icon="heart" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('SavedPlaces')}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Promotions"
-              description="Track rewards and promo codes"
-              left={(props) => <List.Icon {...props} icon="tag" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('Promotions')}
-            />
-          </Surface>
-        </View>
+        {/* Menu Items */}
+        <Surface style={styles.menuCard} elevation={0}>
+          {menuItems.map((item, index) => (
+            <TouchableRipple
+              key={item.id}
+              onPress={() => navigation.navigate(item.route)}
+              style={[
+                styles.menuItem,
+                index < menuItems.length - 1 && styles.menuItemBorder
+              ]}
+            >
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuItemLeft}>
+                  <View style={styles.menuIconContainer}>
+                    <Text style={styles.menuIcon}>
+                      {item.icon === 'account-outline' ? '👤' :
+                       item.icon === 'credit-card-outline' ? '💳' :
+                       item.icon === 'history' ? '🕐' :
+                       item.icon === 'heart-outline' ? '❤️' :
+                       item.icon === 'help-circle-outline' ? '❓' : ''}
+                    </Text>
+                  </View>
+                  <Text style={styles.menuItemTitle}>{item.title}</Text>
+                </View>
+                <View style={styles.chevronContainer}>
+                  <Text style={styles.chevron}>›</Text>
+                </View>
+              </View>
+            </TouchableRipple>
+          ))}
+        </Surface>
 
-        {/* Preferences Section */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Preferences
-          </Text>
+        {/* Settings */}
+        <Surface style={styles.settingsCard} elevation={0}>
+          <View style={styles.settingsItem}>
+            <View style={styles.menuItemLeft}>
+              <View style={styles.menuIconContainer}>
+                <Text style={styles.menuIcon}>🔔</Text>
+              </View>
+              <Text style={styles.menuItemTitle}>Push notifications</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              color="#34D186"
+            />
+          </View>
           
-          <Surface elevation={0} style={styles.listCard}>
-            <List.Item
-              title="Push Notifications"
-              description="Ride updates and promotions"
-              left={(props) => <List.Icon {...props} icon="bell" />}
-              right={() => (
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={setNotificationsEnabled}
-                />
-              )}
+          <View style={[styles.settingsItem, styles.menuItemBorder]}>
+            <View style={styles.menuItemLeft}>
+              <View style={styles.menuIconContainer}>
+                <Text style={styles.menuIcon}>📍</Text>
+              </View>
+              <Text style={styles.menuItemTitle}>Location sharing</Text>
+            </View>
+            <Switch
+              value={locationSharing}
+              onValueChange={setLocationSharing}
+              color="#34D186"
             />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Location Sharing"
-              description="Share location during rides"
-              left={(props) => <List.Icon {...props} icon="map-marker" />}
-              right={() => (
-                <Switch
-                  value={locationSharing}
-                  onValueChange={setLocationSharing}
-                />
-              )}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Language"
-              description="English"
-              left={(props) => <List.Icon {...props} icon="translate" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => {/* TODO: language selection */}}
-            />
-          </Surface>
-        </View>
+          </View>
+        </Surface>
 
-        {/* Support Section */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Support
-          </Text>
-          
-          <Surface elevation={0} style={styles.listCard}>
-            <List.Item
-              title="Help Center"
-              description="FAQs and support articles"
-              left={(props) => <List.Icon {...props} icon="help-circle" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('Support')}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Contact Support"
-              description="Get help from our team"
-              left={(props) => <List.Icon {...props} icon="message" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('Support')}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Safety"
-              description="Emergency contacts and features"
-              left={(props) => <List.Icon {...props} icon="shield-check" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('Support')}
-            />
-          </Surface>
-        </View>
-
-        {/* Legal Section */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Legal
-          </Text>
-          
-          <Surface elevation={0} style={styles.listCard}>
-            <List.Item
-              title="Terms of Service"
-              left={(props) => <List.Icon {...props} icon="file-document" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => {/* TODO: terms */}}
-            />
-            <Divider style={styles.divider} />
-            <List.Item
-              title="Privacy Policy"
-              left={(props) => <List.Icon {...props} icon="shield-account" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => {/* TODO: privacy */}}
-            />
-          </Surface>
-        </View>
-
-        {/* Logout Button */}
+        {/* Logout */}
         <View style={styles.logoutSection}>
           <Button
             mode="outlined"
             onPress={handleLogout}
             style={styles.logoutButton}
-            textColor={theme.colors.error}
+            textColor="#FF4444"
           >
-            Sign Out
+            Sign out
           </Button>
         </View>
-
-        {/* App Version */}
-        <View style={styles.versionSection}>
-          <Text style={styles.versionText}>RideMobile v1.0.0</Text>
-        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
-const createStyles = (theme: AppTheme) =>
+
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#F8F9FA',
     },
+
+    // Header - Bolt Style
+    header: {
+      backgroundColor: '#FFFFFF',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: '#E5E7EB',
+    },
+    headerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(1.5),
+    },
+    backButton: {
+      margin: 0,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#111827',
+      textAlign: 'center',
+    },
+    headerSpacer: {
+      width: 48, // Balance the back button
+    },
+
+    // Scroll View
     scrollView: {
       flex: 1,
     },
-    profileHeader: {
-      backgroundColor: theme.colors.surface,
-      marginBottom: spacing(2),
-    },
+
+    // Profile Card
     profileCard: {
-      borderRadius: 0,
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginTop: spacing(2),
+      marginBottom: spacing(2),
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: '#E5E7EB',
+    },
+    profileTouchable: {
+      borderRadius: radii.lg,
     },
     profileContent: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: spacing(2.5),
+      padding: spacing(3),
     },
-    avatar: {
-      backgroundColor: theme.colors.primaryContainer,
+    profileAvatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: '#34D186',
+      justifyContent: 'center',
+      alignItems: 'center',
       marginRight: spacing(2),
+    },
+    profileAvatarText: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#FFFFFF',
     },
     profileInfo: {
       flex: 1,
     },
-    userName: {
-      color: theme.colors.onSurface,
+    profileName: {
+      fontSize: 18,
       fontWeight: '600',
+      color: '#111827',
+      marginBottom: spacing(0.5),
     },
-    userEmail: {
-      color: theme.colors.onSurfaceVariant,
-      marginTop: spacing(0.25),
+    profileEmail: {
+      fontSize: 14,
+      color: '#6B7280',
+      marginBottom: spacing(0.5),
     },
-    userRole: {
-      color: theme.colors.primary,
-      marginTop: spacing(0.25),
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
+    profileRole: {
+      fontSize: 13,
+      color: '#34D186',
+      fontWeight: '500',
     },
-    section: {
-      marginBottom: spacing(2.5),
+    chevronContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 24,
+      height: 24,
     },
-    sectionTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-      marginHorizontal: spacing(2),
-      marginBottom: spacing(1),
+    chevron: {
+      fontSize: 18,
+      color: '#9CA3AF',
+      fontWeight: '300',
     },
-    listCard: {
-      backgroundColor: theme.colors.surface,
-      marginHorizontal: spacing(2),
+
+    // Menu Card
+    menuCard: {
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginBottom: spacing(2),
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.outlineVariant,
+      borderColor: '#E5E7EB',
     },
-    divider: {
-      backgroundColor: theme.colors.outlineVariant,
-      marginHorizontal: spacing(2),
-    },
-    logoutSection: {
-      paddingHorizontal: spacing(2),
-      marginTop: spacing(2),
-      marginBottom: spacing(3),
-    },
-    logoutButton: {
-      borderColor: theme.colors.error,
+    menuItem: {
       borderRadius: radii.lg,
     },
-    versionSection: {
-      alignItems: 'center',
-      paddingBottom: spacing(3),
+    menuItemBorder: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: '#E5E7EB',
     },
-    versionText: {
-      color: theme.colors.onSurfaceVariant,
+    menuItemContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: spacing(3),
+    },
+    menuItemLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    menuIconContainer: {
+      width: 32,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: spacing(2),
+    },
+    menuIcon: {
+      fontSize: 18,
+    },
+    menuItemTitle: {
+      fontSize: 16,
+      color: '#111827',
+      fontWeight: '400',
+    },
+
+    // Settings Card
+    settingsCard: {
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginBottom: spacing(2),
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: '#E5E7EB',
+    },
+    settingsItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: spacing(3),
+    },
+
+    // Logout Section
+    logoutSection: {
+      paddingHorizontal: spacing(3),
+      paddingBottom: spacing(4),
+      paddingTop: spacing(2),
+    },
+    logoutButton: {
+      borderColor: '#FF4444',
+      borderRadius: radii.md,
     },
   });
 

@@ -1,96 +1,166 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Dimensions, ScrollView } from 'react-native';
-import { 
-  Surface, 
-  Card, 
-  Button, 
-  Text, 
-  Portal, 
-  Modal, 
-  ActivityIndicator,
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  Platform,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Button,
+  Text,
   FAB,
+  Portal,
+  Modal,
+  TextInput,
+  ActivityIndicator,
   Chip,
   IconButton,
-  TextInput
+  Surface,
+  useTheme,
 } from 'react-native-paper';
-import MapView, { Marker, Region, Callout } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
-import { useNotification } from '../../contexts/NotificationContext';
-import { usePayment } from '../../contexts/PaymentContext';
-import { rideService, locationService } from '../../services';
-import PaymentMethodSelector from '../../components/PaymentMethodSelector';
-import type { Driver, RideLocation, Ride } from '../../services';
-import { useAppTheme, spacing, radii } from '../../theme';
-import type { AppTheme } from '../../theme';
+import { useNavigation } from '@react-navigation/native';
+import { 
+  locationService,
+  rideService,
+  paymentService,
+  notificationService,
+  type RideLocation,
+  type Driver,
+  type Ride,
+} from '../../services';
+import { spacing, radii } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
-const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.0922;
-const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-interface HomeScreenProps {
-  navigation: any;
-}
+const LATITUDE_DELTA = 0.005;
+const LONGITUDE_DELTA = LATITUDE_DELTA * (width / height);
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { user } = useAuth();
-  const { sendTestNotification } = useNotification();
-  const { 
-    selectedPaymentMethod,
-    availablePaymentMethods,
-    selectPaymentMethod,
-    processRidePayment,
-    isProcessingPayment
-  } = usePayment();
-  const { 
-    socket, 
-    isConnected, 
-    onRideUpdate, 
-    onDriverLocation, 
-    onIncomingRide, 
-    onRideAccepted, 
-    onRideCancelled,
-    joinRoom,
-    emitRideRequest,
-    emitRideCancel
-  } = useSocket();
-  const theme = useAppTheme();
+// Payment Method Selector Component
+const PaymentMethodSelector: React.FC<{
+  selectedMethod: string;
+  availableMethods: Array<{ id: string; name: string; icon: string; disabled?: boolean }>;
+  onMethodSelect: (methodId: string) => void;
+  showTitle?: boolean;
+}> = ({ selectedMethod, availableMethods, onMethodSelect, showTitle = true }) => {
+  const theme = useTheme();
+  
+  return (
+    <View style={{ marginBottom: spacing(2) }}>
+      {showTitle && (
+        <Text style={{ fontSize: 16, fontWeight: '500', marginBottom: spacing(1), color: theme.colors.onSurface }}>
+          Payment Method
+        </Text>
+      )}
+      {availableMethods.map((method) => (
+        <Button
+          key={method.id}
+          mode={selectedMethod === method.id ? 'contained' : 'outlined'}
+          onPress={() => !method.disabled && onMethodSelect(method.id)}
+          disabled={method.disabled}
+          style={{ marginBottom: spacing(1) }}
+          icon={method.icon}
+        >
+          {method.name}
+        </Button>
+      ))}
+    </View>
+  );
+};
+
+const HomeScreen: React.FC = () => {
+  const theme = useTheme();
   const styles = React.useMemo(() => createStyles(theme), [theme]);
-  
-  // Map state
-  const [region, setRegion] = useState<Region>({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: LATITUDE_DELTA,
-    longitudeDelta: LONGITUDE_DELTA,
-  });
-  
-  // Location state
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  const {
+    socket,
+    onRideUpdate,
+    onDriverLocation,
+    onRideAccepted,
+    onRideCancelled,
+    emitRideRequest,
+    emitRideCancel,
+  } = useSocket();
+
+  // Location and Map State
+  const mapRef = useRef<MapView>(null);
   const [currentLocation, setCurrentLocation] = useState<RideLocation | null>(null);
   const [pickupLocation, setPickupLocation] = useState<RideLocation | null>(null);
   const [dropoffLocation, setDropoffLocation] = useState<RideLocation | null>(null);
-  
-  // Drivers state
+  const [region, setRegion] = useState({
+    latitude: 35.7664,
+    longitude: 10.8147,
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA,
+  });
+  const [locationPermission, setLocationPermission] = useState<boolean>(false);
+
+  // Ride State
   const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
-  
-  // Ride state
-  const [currentRide, setCurrentRide] = useState<Ride | null>(null);
-  const [estimatedFare, setEstimatedFare] = useState<number>(0);
   const [rideType, setRideType] = useState<'standard' | 'premium'>('standard');
-  
-  // UI state
-  const [isRequestingRide, setIsRequestingRide] = useState(false);
-  const [isSearchingDriver, setIsSearchingDriver] = useState(false);
-  const [locationPermission, setLocationPermission] = useState(false);
+  const [estimatedFare, setEstimatedFare] = useState<number>(0);
+  const [currentRide, setCurrentRide] = useState<Ride | null>(null);
+  const [isRequestingRide, setIsRequestingRide] = useState<boolean>(false);
+  const [isSearchingDriver, setIsSearchingDriver] = useState<boolean>(false);
+
+  // UI State
+  const [showRideOptions, setShowRideOptions] = useState<boolean>(false);
   const [showLocationSearch, setShowLocationSearch] = useState<'pickup' | 'dropoff' | null>(null);
-  const [locationSearchText, setLocationSearchText] = useState('');
-  const [showRideOptions, setShowRideOptions] = useState(false);
-  
-  const mapRef = useRef<MapView>(null);
+  const [locationSearchText, setLocationSearchText] = useState<string>('');
+
+  // Payment State
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('cash');
+  const [availablePaymentMethods] = useState([
+    { id: 'cash', name: 'Cash on Delivery', icon: 'cash' },
+    { id: 'card', name: 'Card (Coming Soon)', icon: 'credit-card', disabled: true },
+  ]);
+
+  // Enhanced Payment Service Methods
+  const selectPaymentMethod = (methodId: string) => {
+    setSelectedPaymentMethod(methodId);
+  };
+
+  const processRidePayment = async (rideId: string, amount: number) => {
+    try {
+      // For cash payments, just return success
+      if (selectedPaymentMethod === 'cash') {
+        return { success: true, method: 'cash' };
+      }
+      
+      // For card payments (when available)
+      return await paymentService.processCardPayment({
+        rideId,
+        amount,
+        cardToken: 'dummy-token', // Will be replaced with actual card token
+      });
+    } catch (error) {
+      console.error('Payment processing error:', error);
+      throw error;
+    }
+  };
+
+  const sendTestNotification = async (title: string, body: string) => {
+    try {
+      return await notificationService.sendTestNotification(title, body);
+    } catch (error) {
+      console.error('Notification error:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     initializeLocation();
+    setupSocketListeners();
+    
+    return () => {
+      cleanupSocketListeners();
+    };
   }, []);
 
   useEffect(() => {
@@ -103,19 +173,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     if (pickupLocation && dropoffLocation) {
       calculateEstimatedFare();
       setShowRideOptions(true);
-    } else {
-      setShowRideOptions(false);
     }
   }, [pickupLocation, dropoffLocation, rideType]);
-
-  useEffect(() => {
-    if (socket && isConnected) {
-      setupSocketListeners();
-      return () => {
-        cleanupSocketListeners();
-      };
-    }
-  }, [socket, isConnected]);
 
   const initializeLocation = async () => {
     try {
@@ -234,7 +293,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       setIsSearchingDriver(false);
       setCurrentRide(rideData);
       Alert.alert('Ride Accepted!', 'Your driver is on the way.');
-      navigation.navigate('RideTracking', { ride: rideData });
+      (navigation as any).navigate('RideTracking', { ride: rideData });
     } else if (rideData.status === 'COMPLETED') {
       handleRideCompleted(rideData);
     }
@@ -262,7 +321,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     Alert.alert(
       'Ride Accepted!', 
       `Driver ${rideData.driver?.name || 'Unknown'} is on the way.`,
-      [{ text: 'OK', onPress: () => navigation.navigate('RideTracking', { ride: rideData }) }]
+      [{ text: 'OK', onPress: () => (navigation as any).navigate('RideTracking', { ride: rideData }) }]
     );
   };
 
@@ -281,7 +340,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       console.log('✅ Payment processed successfully');
       
       // Navigate to receipt screen with rideId
-      navigation.navigate('RideReceipt', { rideId: rideData.id });
+      (navigation as any).navigate('RideReceipt', { rideId: rideData.id });
       
     } catch (error) {
       console.error('❌ Error processing payment:', error);
@@ -291,7 +350,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('RideReceipt', { rideId: rideData.id })
+            onPress: () => (navigation as any).navigate('RideReceipt', { rideId: rideData.id })
           }
         ]
       );
@@ -319,7 +378,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     Alert.alert(
       'Driver Found!',
       `${data.driver?.name || 'A driver'} has been assigned to your ride.`,
-      [{ text: 'Track Ride', onPress: () => navigation.navigate('RideTracking', { ride: data.ride }) }]
+      [{ text: 'Track Ride', onPress: () => (navigation as any).navigate('RideTracking', { ride: data.ride }) }]
     );
   };
 
@@ -416,13 +475,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const clearLocations = () => {
-    setPickupLocation(currentLocation);
-    setDropoffLocation(null);
-    setEstimatedFare(0);
-    setShowRideOptions(false);
-  };
-
   const clearRideOptions = () => {
     setShowRideOptions(false);
   };
@@ -493,7 +545,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Map */}
       <MapView
         ref={mapRef}
@@ -549,7 +601,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   {driver.vehicle.color} {driver.vehicle.make} {driver.vehicle.model}
                 </Text>
                 <Text style={styles.calloutSubtitle}>
-                  Rating: {driver.rating}  {driver.distance?.toFixed(1)}km away
+                  Rating: {driver.rating} ⭐ {driver.distance?.toFixed(1)}km away
                 </Text>
                 <Text style={styles.calloutSubtitle}>
                   ETA: {driver.estimatedArrival} min
@@ -560,7 +612,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ))}
       </MapView>
 
-      {/* Location Selection */}
+      {/* Location Selection - Bolt Style */}
       <Surface elevation={1} style={styles.locationContainer}>
         <View style={styles.locationPanel}>
           <View style={styles.locationHeader}>
@@ -613,7 +665,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       </Surface>
 
-      {/* Ride Type Selection */}
+      {/* Ride Type Selection - Bolt Style Bottom Sheet */}
       {pickupLocation && dropoffLocation && showRideOptions && (
         <Surface style={styles.rideOptionsContainer}>
           <View style={styles.rideOptionsHeader}>
@@ -627,6 +679,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               style={styles.closeButton}
             />
           </View>
+          
           <View style={styles.rideTypeContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Chip
@@ -658,7 +711,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             </View>
           )}
 
-          {/* Payment Method Selection */}
+          {/* Payment Method Selection - Bolt Style */}
           <PaymentMethodSelector
             selectedMethod={selectedPaymentMethod}
             availableMethods={availablePaymentMethods}
@@ -745,7 +798,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           }}
           contentContainerStyle={styles.searchingModal}
         >
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.searchingText}>Searching for driver...</Text>
           <Text style={styles.searchingSubtext}>
             We're finding the best driver for your trip
@@ -766,11 +819,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </Button>
         </Modal>
       </Portal>
-    </View>
+    </SafeAreaView>
   );
 };
 
-const createStyles = (theme: AppTheme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -791,9 +844,11 @@ const createStyles = (theme: AppTheme) =>
     map: {
       flex: 1,
     },
+    
+    // Location Container - Bolt Style
     locationContainer: {
       position: 'absolute',
-      top: spacing(2),
+      top: Platform.OS === 'ios' ? 60 : 20,
       left: spacing(2),
       right: spacing(2),
       borderRadius: radii.lg,
@@ -804,16 +859,18 @@ const createStyles = (theme: AppTheme) =>
       shadowOpacity: 0.08,
       shadowRadius: 12,
       shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
     },
     locationPanel: {
-      padding: spacing(1.5),
+      padding: spacing(2),
     },
     locationHeader: {
-      marginBottom: spacing(1),
+      marginBottom: spacing(1.5),
     },
     locationTitle: {
       color: theme.colors.onSurface,
       fontWeight: '600',
+      fontSize: 16,
     },
     locationInputs: {
       // Container for pickup and dropoff inputs
@@ -821,12 +878,12 @@ const createStyles = (theme: AppTheme) =>
     locationInputRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: spacing(0.75),
+      paddingVertical: spacing(1),
     },
     locationIndicator: {
-      width: 20,
+      width: 24,
       alignItems: 'center',
-      marginRight: spacing(1),
+      marginRight: spacing(1.5),
     },
     pickupDot: {
       width: 8,
@@ -842,11 +899,11 @@ const createStyles = (theme: AppTheme) =>
     },
     locationConnector: {
       alignItems: 'center',
-      paddingVertical: spacing(0.25),
+      paddingVertical: spacing(0.5),
     },
     connectorLine: {
       width: 2,
-      height: 12,
+      height: 16,
       backgroundColor: theme.colors.outlineVariant,
     },
     locationButton: {
@@ -856,7 +913,7 @@ const createStyles = (theme: AppTheme) =>
     locationButtonContent: {
       justifyContent: 'flex-start',
       paddingHorizontal: spacing(1),
-      paddingVertical: spacing(0.75),
+      paddingVertical: spacing(1),
     },
     locationButtonText: {
       fontSize: 14,
@@ -868,38 +925,8 @@ const createStyles = (theme: AppTheme) =>
       color: theme.colors.onSurfaceVariant,
       fontWeight: '400',
     },
-    locationCard: {
-      marginBottom: spacing(1),
-      borderRadius: radii.md,
-      backgroundColor: theme.colors.surface,
-    },
-    locationCardContent: {
-      paddingVertical: spacing(1.5),
-    },
-    locationRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    locationDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: theme.colors.primary,
-      marginRight: spacing(1.5),
-    },
-    locationTextContainer: {
-      flex: 1,
-    },
-    locationLabel: {
-      fontSize: 12,
-      color: theme.colors.onSurfaceVariant,
-      marginBottom: 2,
-    },
-    locationText: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.onSurface,
-    },
+
+    // Ride Options Bottom Sheet - Bolt Style
     rideOptionsContainer: {
       position: 'absolute',
       bottom: 0,
@@ -917,6 +944,20 @@ const createStyles = (theme: AppTheme) =>
       shadowRadius: 16,
       shadowOffset: { width: 0, height: -4 },
     },
+    rideOptionsHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing(2),
+    },
+    rideOptionsTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+      fontSize: 18,
+    },
+    closeButton: {
+      margin: 0,
+    },
     rideTypeContainer: {
       marginBottom: spacing(2),
     },
@@ -925,7 +966,7 @@ const createStyles = (theme: AppTheme) =>
     },
     fareContainer: {
       marginBottom: spacing(2),
-      paddingVertical: spacing(1.5),
+      paddingVertical: spacing(2),
       paddingHorizontal: spacing(2),
       backgroundColor: theme.colors.surfaceVariant,
       borderRadius: radii.md,
@@ -955,18 +996,24 @@ const createStyles = (theme: AppTheme) =>
     requestButton: {
       marginTop: spacing(2),
       borderRadius: radii.md,
+      backgroundColor: theme.colors.primary,
     },
+
+    // FAB Buttons
     locationFab: {
       position: 'absolute',
       bottom: spacing(25),
       right: spacing(2),
+      backgroundColor: theme.colors.primary,
     },
     testNotificationFab: {
       position: 'absolute',
       bottom: spacing(18),
       right: spacing(2),
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.secondary,
     },
+
+    // Callout Styles
     calloutContainer: {
       minWidth: 160,
       paddingRight: spacing(1),
@@ -981,6 +1028,8 @@ const createStyles = (theme: AppTheme) =>
       color: theme.colors.onSurfaceVariant,
       marginTop: 2,
     },
+
+    // Search Modal
     searchModal: {
       backgroundColor: theme.colors.surface,
       padding: spacing(3),
@@ -1007,6 +1056,8 @@ const createStyles = (theme: AppTheme) =>
       marginHorizontal: spacing(0.5),
       borderRadius: radii.md,
     },
+
+    // Searching Modal
     searchingModal: {
       backgroundColor: theme.colors.surface,
       padding: spacing(4),
@@ -1032,19 +1083,6 @@ const createStyles = (theme: AppTheme) =>
     cancelButton: {
       marginTop: spacing(2),
       borderRadius: radii.md,
-    },
-    rideOptionsHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: spacing(1.5),
-    },
-    rideOptionsTitle: {
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    closeButton: {
-      margin: 0,
     },
   });
 

@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { SocketProvider } from '../contexts/SocketContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { IconButton } from 'react-native-paper';
 import { RootStackParamList } from '../types/navigation';
 import { navigationTheme, useAppTheme } from '../theme';
 import type { AppTheme } from '../theme';
@@ -53,7 +52,7 @@ const AppNavigator: React.FC = () => {
                 <Stack.Screen 
                   name="RequestRide" 
                   component={RequestRideScreen}
-                  options={{ title: 'RideMobile' }}
+                  options={{ headerShown: false }}
                 />
               ) : (
                 <Stack.Screen 
@@ -65,66 +64,57 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="Settings" 
                 component={SettingsScreen}
-                options={{ title: 'Settings', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Profile" 
                 component={ProfileScreen}
-                options={{ title: 'Profile', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Dashboard" 
                 component={DashboardScreen}
-                options={({ navigation }) => ({ 
-                  title: `${user.role === 'driver' ? 'Driver' : 'Rider'} Dashboard`,
-                  headerRight: () => (
-                    <IconButton
-                      icon="cog"
-                      size={24}
-                      onPress={() => navigation.navigate('Settings')}
-                    />
-                  ),
-                })}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Home" 
                 component={HomeScreen}
-                options={{ title: 'Find a Ride', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="RideTracking" 
                 component={RideTrackingScreen}
-                options={{ title: 'Your Ride', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="RideReceipt" 
                 component={RideReceiptScreen}
-                options={{ title: 'Ride Receipt', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="RideHistory" 
                 component={RideHistoryScreen}
-                options={{ title: 'Ride History', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="SavedPlaces" 
                 component={SavedPlacesScreen}
-                options={{ title: 'Saved Places', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="PaymentMethods" 
                 component={PaymentMethodsScreen}
-                options={{ title: 'Payment Methods', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Support" 
                 component={SupportScreen}
-                options={{ title: 'Support', headerShown: true }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Promotions" 
                 component={PromotionsScreen}
-                options={{ title: 'Promotions', headerShown: true }}
+                options={{ headerShown: false }}
               />
             </>
           ) : (
@@ -133,12 +123,12 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="Login" 
                 component={LoginScreen}
-                options={{ title: 'Sign In' }}
+                options={{ headerShown: false }}
               />
               <Stack.Screen 
                 name="Register" 
                 component={RegisterScreen}
-                options={{ title: 'Create Account' }}
+                options={{ headerShown: false }}
               />
             </>
           )}

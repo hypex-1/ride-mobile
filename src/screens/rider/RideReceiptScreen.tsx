@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Share } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Share, StatusBar, SafeAreaView } from 'react-native';
 import { 
-  Card, 
   Text, 
   Button, 
-  Divider, 
   Surface,
-  Chip,
-  Icon,
-  ActivityIndicator,
   IconButton,
-  Snackbar
+  Snackbar,
+  ActivityIndicator
 } from 'react-native-paper';
 import { RideReceiptScreenProps } from '../../types/navigation';
 import { usePayment } from '../../contexts/PaymentContext';
 import { PaymentReceipt } from '../../services/payment';
 import { useAppTheme, spacing, radii } from '../../theme';
-import type { AppTheme } from '../../theme';
 
 const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation }) => {
   const { rideId } = route.params;
@@ -138,14 +133,10 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
     return new Date(dateString).toLocaleDateString();
   };
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color="#34D186" />
         <Text style={styles.loadingText}>Loading receipt...</Text>
       </View>
     );
@@ -154,12 +145,11 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
   if (!receipt) {
     return (
       <View style={styles.centered}>
-        <Icon source="receipt" size={64} color={theme.colors.outline} />
-        <Text variant="headlineSmall" style={styles.errorTitle}>Receipt not found</Text>
-        <Text variant="bodyMedium" style={styles.errorSubtitle}>
+        <Text style={styles.errorTitle}>Receipt not found</Text>
+        <Text style={styles.errorSubtitle}>
           {error || 'Unable to load receipt data'}
         </Text>
-        <Button mode="contained" onPress={goHome} style={styles.button}>
+        <Button mode="contained" onPress={goHome} style={styles.button} buttonColor="#34D186">
           Go Home
         </Button>
       </View>
@@ -167,213 +157,158 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Surface style={styles.receiptCard}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Icon source="check-circle" size={48} color={theme.colors.tertiary} />
-          <Text variant="headlineSmall" style={styles.title}>
-            Ride Completed
-          </Text>
-          <Text variant="bodyMedium" style={styles.subtitle}>
-            Thank you for riding with us!
-          </Text>
-          <Chip 
-            mode="flat" 
-            style={styles.statusChip}
-            textStyle={styles.statusChipText}
-          >
-            {receipt.payment.status}
-          </Chip>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Header */}
+      <SafeAreaView style={styles.header}>
+        <View style={styles.headerContent}>
+          <IconButton
+            icon="arrow-left"
+            iconColor="#000000"
+            size={24}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          />
+          <Text style={styles.headerTitle}>Trip receipt</Text>
+          <IconButton
+            icon="share-variant"
+            iconColor="#34D186"
+            size={24}
+            onPress={shareReceipt}
+            style={styles.shareButton}
+          />
+        </View>
+      </SafeAreaView>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Success Icon */}
+        <View style={styles.successSection}>
+          <View style={styles.successIcon}>
+            <Text style={styles.successIconText}>✓</Text>
+          </View>
+          <Text style={styles.successTitle}>Trip completed</Text>
+          <Text style={styles.successSubtitle}>Hope you enjoyed your ride</Text>
         </View>
 
-        <Divider style={styles.divider} />
-
-        {/* Ride Details */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Ride Details
-          </Text>
+        {/* Trip Summary */}
+        <Surface style={styles.summaryCard} elevation={0}>
+          <Text style={styles.cardTitle}>Trip summary</Text>
           
-          <View style={styles.detailRow}>
-            <Text variant="bodyMedium" style={styles.label}>Ride ID:</Text>
-            <Text variant="bodyMedium">#{receipt.rideId}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text variant="bodyMedium" style={styles.label}>Date:</Text>
-            <Text variant="bodyMedium">{formatDate(receipt.ride.endTime)}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text variant="bodyMedium" style={styles.label}>Time:</Text>
-            <Text variant="bodyMedium">
-              {formatTime(receipt.ride.startTime)} - {formatTime(receipt.ride.endTime)}
-            </Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text variant="bodyMedium" style={styles.label}>Distance:</Text>
-            <Text variant="bodyMedium">{receipt.ride.distance.toFixed(1)} km</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <Text variant="bodyMedium" style={styles.label}>Duration:</Text>
-            <Text variant="bodyMedium">{receipt.ride.duration} min</Text>
-          </View>
-        </View>
-
-        <Divider style={styles.divider} />
-
-        {/* Route */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Route
-          </Text>
-          
-          <View style={styles.routeContainer}>
-            <View style={styles.routePoint}>
-              <View style={[styles.routeDot, styles.routeDotPickup]} />
-              <Text variant="bodyMedium" style={styles.routeText}>
+          {/* Route */}
+          <View style={styles.routeSection}>
+            <View style={styles.routeItem}>
+              <View style={[styles.routeDot, styles.pickupDot]} />
+              <Text style={styles.routeText} numberOfLines={2}>
                 {receipt.ride.pickupAddress}
               </Text>
             </View>
-            
             <View style={styles.routeLine} />
-            
-            <View style={styles.routePoint}>
-              <View style={[styles.routeDot, styles.routeDotDropoff]} />
-              <Text variant="bodyMedium" style={styles.routeText}>
+            <View style={styles.routeItem}>
+              <View style={[styles.routeDot, styles.dropoffDot]} />
+              <Text style={styles.routeText} numberOfLines={2}>
                 {receipt.ride.dropoffAddress}
               </Text>
             </View>
           </View>
-        </View>
 
-        <Divider style={styles.divider} />
+          {/* Trip Details */}
+          <View style={styles.tripDetails}>
+            <View style={styles.tripDetailItem}>
+              <Text style={styles.tripDetailLabel}>Distance</Text>
+              <Text style={styles.tripDetailValue}>{receipt.ride.distance.toFixed(1)} km</Text>
+            </View>
+            <View style={styles.tripDetailItem}>
+              <Text style={styles.tripDetailLabel}>Time</Text>
+              <Text style={styles.tripDetailValue}>{receipt.ride.duration} min</Text>
+            </View>
+            <View style={styles.tripDetailItem}>
+              <Text style={styles.tripDetailLabel}>Date</Text>
+              <Text style={styles.tripDetailValue}>{formatDate(receipt.ride.endTime)}</Text>
+            </View>
+          </View>
+        </Surface>
 
         {/* Driver Info */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Driver
-          </Text>
-          
+        <Surface style={styles.driverCard} elevation={0}>
+          <Text style={styles.cardTitle}>Driver</Text>
           <View style={styles.driverInfo}>
-            <View style={styles.driverRow}>
-              <Icon source="account" size={20} color={theme.colors.onSurfaceVariant} />
-              <Text variant="bodyMedium" style={styles.driverText}>
-                {receipt.driver.name}
+            <View style={styles.driverAvatar}>
+              <Text style={styles.driverAvatarText}>
+                {receipt.driver.name.split(' ').map(n => n[0]).join('')}
               </Text>
             </View>
-            <View style={styles.driverRow}>
-              <Icon source="car" size={20} color={theme.colors.onSurfaceVariant} />
-              <Text variant="bodyMedium" style={styles.driverText}>
-                {receipt.driver.vehicleModel}
+            <View style={styles.driverDetails}>
+              <Text style={styles.driverName}>{receipt.driver.name}</Text>
+              <Text style={styles.driverVehicle}>
+                {receipt.driver.vehicleModel} • {receipt.driver.licensePlate}
               </Text>
-            </View>
-            <View style={styles.driverRow}>
-              <Icon source="card-text" size={20} color={theme.colors.onSurfaceVariant} />
-              <Text variant="bodyMedium" style={styles.driverText}>
-                {receipt.driver.licensePlate}
-              </Text>
-            </View>
-            <View style={styles.driverRow}>
-              <Icon source="star" size={20} color={theme.colors.secondary} />
-              <Text variant="bodyMedium" style={styles.driverText}>
-                {receipt.driver.rating.toFixed(1)} ⭐
-              </Text>
+              <Text style={styles.driverRating}>★ {receipt.driver.rating.toFixed(1)}</Text>
             </View>
           </View>
-        </View>
+        </Surface>
 
-        <Divider style={styles.divider} />
-
-        {/* Payment Breakdown */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Payment Summary
-          </Text>
+        {/* Payment Details */}
+        <Surface style={styles.paymentCard} elevation={0}>
+          <Text style={styles.cardTitle}>Payment</Text>
           
-          <View style={styles.paymentRow}>
-            <Text variant="bodyMedium">Base Fare</Text>
-            <Text variant="bodyMedium">
-              {receipt.breakdown.baseFare.toFixed(2)} {receipt.payment.currency}
-            </Text>
-          </View>
-          
-          <View style={styles.paymentRow}>
-            <Text variant="bodyMedium">Distance Fare</Text>
-            <Text variant="bodyMedium">
-              {receipt.breakdown.distanceFare.toFixed(2)} {receipt.payment.currency}
-            </Text>
-          </View>
-          
-          <View style={styles.paymentRow}>
-            <Text variant="bodyMedium">Time Fare</Text>
-            <Text variant="bodyMedium">
-              {receipt.breakdown.timeFare.toFixed(2)} {receipt.payment.currency}
-            </Text>
-          </View>
-          
-          {(receipt.breakdown.tips || 0) > 0 && (
-            <View style={styles.paymentRow}>
-              <Text variant="bodyMedium">Tips</Text>
-              <Text variant="bodyMedium">
-                {(receipt.breakdown.tips || 0).toFixed(2)} {receipt.payment.currency}
+          <View style={styles.fareBreakdown}>
+            <View style={styles.fareItem}>
+              <Text style={styles.fareLabel}>Base fare</Text>
+              <Text style={styles.fareValue}>
+                {receipt.breakdown.baseFare.toFixed(2)} {receipt.payment.currency}
               </Text>
             </View>
-          )}
-          
-          {(receipt.breakdown.discount || 0) > 0 && (
-            <View style={styles.paymentRow}>
-              <Text variant="bodyMedium" style={styles.discountText}>Discount</Text>
-              <Text variant="bodyMedium" style={styles.discountText}>
-                -{(receipt.breakdown.discount || 0).toFixed(2)} {receipt.payment.currency}
+            <View style={styles.fareItem}>
+              <Text style={styles.fareLabel}>Distance & time</Text>
+              <Text style={styles.fareValue}>
+                {(receipt.breakdown.distanceFare + receipt.breakdown.timeFare).toFixed(2)} {receipt.payment.currency}
               </Text>
             </View>
-          )}
-          
-          <Divider style={styles.paymentDivider} />
-          
-          <View style={styles.totalRow}>
-            <Text variant="titleMedium">Total</Text>
-            <Text variant="titleMedium" style={styles.totalAmount}>
-              {receipt.breakdown.totalAmount.toFixed(2)} {receipt.payment.currency}
+            {(receipt.breakdown.tips || 0) > 0 && (
+              <View style={styles.fareItem}>
+                <Text style={styles.fareLabel}>Tip</Text>
+                <Text style={styles.fareValue}>
+                  {(receipt.breakdown.tips || 0).toFixed(2)} {receipt.payment.currency}
+                </Text>
+              </View>
+            )}
+            {(receipt.breakdown.discount || 0) > 0 && (
+              <View style={styles.fareItem}>
+                <Text style={[styles.fareLabel, styles.discountText]}>Discount</Text>
+                <Text style={[styles.fareValue, styles.discountText]}>
+                  -{(receipt.breakdown.discount || 0).toFixed(2)} {receipt.payment.currency}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.totalSection}>
+            <View style={styles.totalItem}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {receipt.breakdown.totalAmount.toFixed(2)} {receipt.payment.currency}
+              </Text>
+            </View>
+            <Text style={styles.paymentMethod}>
+              Paid with {receipt.payment.method === 'CASH' ? 'cash' : receipt.payment.method.toLowerCase()}
             </Text>
           </View>
-          
-          <View style={styles.paymentMethod}>
-            <Chip 
-              mode="outlined" 
-              icon={receipt.payment.method === 'CASH' ? 'cash' : 'credit-card'}
-              style={styles.paymentChip}
-              textStyle={styles.paymentChipText}
-            >
-              {receipt.payment.method === 'CASH' ? 'Cash on Delivery' : receipt.payment.method}
-            </Chip>
-          </View>
-        </View>
+        </Surface>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <Button 
-            mode="outlined" 
-            onPress={shareReceipt}
-            style={[styles.button, styles.shareButton]}
-            icon="share-variant"
-          >
-            Share
-          </Button>
-          <Button 
-            mode="contained" 
+        {/* Action Button */}
+        <View style={styles.actionSection}>
+          <Button
+            mode="contained"
             onPress={goHome}
-            style={[styles.button, styles.doneButton]}
-            textColor={theme.colors.onPrimary}
+            style={styles.doneButton}
+            buttonColor="#34D186"
+            contentStyle={styles.doneButtonContent}
           >
             Done
           </Button>
         </View>
-      </Surface>
+      </ScrollView>
 
       <Snackbar
         visible={snackbarVisible}
@@ -382,194 +317,300 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
       >
         Failed to share receipt
       </Snackbar>
-    </ScrollView>
+    </View>
   );
 };
 
-const createStyles = (theme: AppTheme) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#F8F9FA',
     },
+    
+    // Loading/Error States
     centered: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: spacing(3),
-      backgroundColor: theme.colors.background,
+      backgroundColor: '#F8F9FA',
     },
     loadingText: {
       marginTop: spacing(2),
-      color: theme.colors.onSurfaceVariant,
+      fontSize: 16,
+      color: '#6B7280',
     },
     errorTitle: {
-      marginTop: spacing(2),
+      fontSize: 24,
+      fontWeight: '600',
+      color: '#111827',
       marginBottom: spacing(1),
-      color: theme.colors.onSurface,
     },
     errorSubtitle: {
-      marginBottom: spacing(3),
-      color: theme.colors.onSurfaceVariant,
+      fontSize: 16,
+      color: '#6B7280',
       textAlign: 'center',
+      marginBottom: spacing(3),
+    },
+
+    // Header - Bolt Style
+    header: {
+      backgroundColor: '#FFFFFF',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: '#E5E7EB',
+    },
+    headerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(1.5),
+    },
+    backButton: {
+      margin: 0,
+    },
+    headerTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#111827',
+      textAlign: 'center',
+      marginRight: spacing(6), // Balance the share button
+    },
+    shareButton: {
+      margin: 0,
+      backgroundColor: 'rgba(52, 209, 134, 0.1)',
+    },
+
+    // Scroll View
+    scrollView: {
+      flex: 1,
+    },
+
+    // Success Section
+    successSection: {
+      alignItems: 'center',
+      paddingVertical: spacing(4),
       paddingHorizontal: spacing(3),
     },
-    receiptCard: {
-      margin: spacing(3),
-      padding: spacing(3),
-      borderRadius: radii.xl,
-      backgroundColor: theme.colors.surface,
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      elevation: 6,
-      shadowColor: theme.colors.onSurface,
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 6 },
-    },
-    header: {
+    successIcon: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: '#34D186',
+      justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: spacing(3),
-    },
-    title: {
-      marginTop: spacing(1),
-      marginBottom: spacing(0.5),
-      color: theme.colors.onSurface,
-      fontWeight: '600',
-    },
-    subtitle: {
-      color: theme.colors.onSurfaceVariant,
-      marginBottom: spacing(1.5),
-      textAlign: 'center',
-    },
-    statusChip: {
-      marginTop: spacing(1),
-      borderRadius: radii.pill,
-      backgroundColor: theme.colors.surfaceVariant,
-      borderColor: theme.colors.outline,
-    },
-    statusChipText: {
-      fontWeight: '600',
-      color: theme.colors.tertiary,
-    },
-    divider: {
-      marginVertical: spacing(2),
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: theme.colors.outline,
-    },
-    section: {
       marginBottom: spacing(2),
     },
-    sectionTitle: {
+    successIconText: {
+      fontSize: 32,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
+    successTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: '#111827',
       marginBottom: spacing(1),
+    },
+    successSubtitle: {
+      fontSize: 16,
+      color: '#6B7280',
+      textAlign: 'center',
+    },
+
+    // Cards - Bolt Style
+    summaryCard: {
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginBottom: spacing(2),
+      padding: spacing(3),
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: '#E5E7EB',
+    },
+    driverCard: {
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginBottom: spacing(2),
+      padding: spacing(3),
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: '#E5E7EB',
+    },
+    paymentCard: {
+      backgroundColor: '#FFFFFF',
+      marginHorizontal: spacing(3),
+      marginBottom: spacing(2),
+      padding: spacing(3),
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: '#E5E7EB',
+    },
+    cardTitle: {
+      fontSize: 18,
       fontWeight: '600',
-      color: theme.colors.onSurface,
+      color: '#111827',
+      marginBottom: spacing(2),
     },
-    detailRow: {
+
+    // Route Section
+    routeSection: {
+      marginBottom: spacing(3),
+    },
+    routeItem: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: spacing(1),
-    },
-    label: {
-      color: theme.colors.onSurfaceVariant,
-      flex: 1,
-      marginRight: spacing(1),
-    },
-    routeContainer: {
-      paddingLeft: spacing(1),
-      marginTop: spacing(1),
-    },
-    routePoint: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginBottom: spacing(1),
+      alignItems: 'center',
+      paddingVertical: spacing(1),
     },
     routeDot: {
       width: 12,
       height: 12,
       borderRadius: 6,
-      marginRight: spacing(1.5),
-      marginTop: spacing(0.5),
-      backgroundColor: theme.colors.tertiary,
+      marginRight: spacing(2),
     },
-    routeDotPickup: {
-      backgroundColor: theme.colors.tertiary,
+    pickupDot: {
+      backgroundColor: '#34D186',
     },
-    routeDotDropoff: {
-      backgroundColor: theme.colors.error,
+    dropoffDot: {
+      backgroundColor: '#FF4444',
     },
     routeLine: {
       width: 2,
-      height: 24,
-      backgroundColor: theme.colors.outline,
-      marginLeft: spacing(0.5),
-      marginBottom: spacing(1),
+      height: 20,
+      backgroundColor: '#D1D5DB',
+      marginLeft: 5,
+      marginVertical: spacing(0.5),
     },
     routeText: {
       flex: 1,
+      fontSize: 14,
+      color: '#374151',
       lineHeight: 20,
-      color: theme.colors.onSurface,
     },
+
+    // Trip Details
+    tripDetails: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: '#E5E7EB',
+      paddingTop: spacing(2),
+    },
+    tripDetailItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: spacing(1),
+    },
+    tripDetailLabel: {
+      fontSize: 14,
+      color: '#6B7280',
+    },
+    tripDetailValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: '#111827',
+    },
+
+    // Driver Info
     driverInfo: {
-      paddingLeft: spacing(1),
-    },
-    driverRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: spacing(1),
     },
-    driverText: {
-      marginLeft: spacing(1.5),
-      color: theme.colors.onSurface,
-    },
-    paymentRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: spacing(1),
-    },
-    paymentDivider: {
-      marginVertical: spacing(1.5),
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: theme.colors.outline,
-    },
-    totalRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: spacing(1.5),
-    },
-    totalAmount: {
-      fontWeight: '700',
-      color: theme.colors.primary,
-    },
-    discountText: {
-      color: theme.colors.error,
-    },
-    paymentMethod: {
+    driverAvatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: '#34D186',
+      justifyContent: 'center',
       alignItems: 'center',
-      marginTop: spacing(1.5),
+      marginRight: spacing(2),
     },
-    paymentChip: {
-      backgroundColor: theme.colors.surfaceVariant,
-      borderColor: theme.colors.outline,
+    driverAvatarText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFFFFF',
     },
-    paymentChipText: {
-      color: theme.colors.onSurface,
+    driverDetails: {
+      flex: 1,
+    },
+    driverName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#111827',
+      marginBottom: spacing(0.5),
+    },
+    driverVehicle: {
+      fontSize: 14,
+      color: '#6B7280',
+      marginBottom: spacing(0.5),
+    },
+    driverRating: {
+      fontSize: 14,
+      color: '#F59E0B',
       fontWeight: '500',
     },
-    actionButtons: {
+
+    // Payment
+    fareBreakdown: {
+      marginBottom: spacing(2),
+    },
+    fareItem: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: spacing(3),
+      alignItems: 'center',
+      paddingVertical: spacing(1),
     },
-    button: {
-      flex: 1,
-      borderRadius: radii.md,
+    fareLabel: {
+      fontSize: 14,
+      color: '#6B7280',
     },
-    shareButton: {
-      marginRight: spacing(1),
+    fareValue: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: '#111827',
+    },
+    discountText: {
+      color: '#EF4444',
+    },
+    totalSection: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: '#E5E7EB',
+      paddingTop: spacing(2),
+    },
+    totalItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing(1),
+    },
+    totalLabel: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#111827',
+    },
+    totalValue: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#111827',
+    },
+    paymentMethod: {
+      fontSize: 14,
+      color: '#6B7280',
+    },
+
+    // Action Section
+    actionSection: {
+      paddingHorizontal: spacing(3),
+      paddingBottom: spacing(4),
     },
     doneButton: {
-      marginLeft: spacing(1),
+      borderRadius: radii.md,
+    },
+    doneButtonContent: {
+      height: 52,
+    },
+    button: {
+      borderRadius: radii.md,
     },
   });
 
