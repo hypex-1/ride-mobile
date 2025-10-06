@@ -20,39 +20,34 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPassword123!';
 
 // Skip integration tests if not in CI or staging environment
 const shouldRunIntegrationTests = process.env.RUN_INTEGRATION_TESTS === 'true' || process.env.CI === 'true';
+const describeIntegration = shouldRunIntegrationTests ? describe : describe.skip;
 
-describe('Integration Tests with Real Backend', () => {
-  let authToken: string;
-  let userId: string;
+if (!shouldRunIntegrationTests) {
+  console.log('⏭️ Skipping integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
+}
+
+describeIntegration('Integration Tests with Real Backend', () => {
+  let authToken: string | null = null;
+  let userId: string | null = null;
   let testRideId: string;
 
   beforeAll(async () => {
-    if (!shouldRunIntegrationTests) {
-      console.log('⏭️ Skipping integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
-      return;
-    }
-
     // Configure API service for staging
-    if (STAGING_API_URL !== apiService.defaults?.baseURL) {
+    if (STAGING_API_URL !== apiService.getBaseURL()) {
       console.log(`🔧 Configuring API service for staging: ${STAGING_API_URL}`);
-      // Note: You may need to update apiService configuration here
-    }
-  });
-
-  beforeEach(() => {
-    if (!shouldRunIntegrationTests) {
-      pending('Integration tests disabled');
+      apiService.setBaseURL(STAGING_API_URL);
     }
   });
 
   describe('Authentication Flow', () => {
     it('should register a new test user', async () => {
       const testEmail = `test.${Date.now()}@ridemobile.com`;
-      const userData = {
+      const userData: RegisterData = {
         email: testEmail,
         password: TEST_USER_PASSWORD,
-        name: 'Integration Test User',
-        phone: '+21612345678',
+        firstName: 'Integration',
+        lastName: 'TestUser',
+        phoneNumber: '+21612345678',
         role: 'rider' as const
       };
 
@@ -60,10 +55,11 @@ describe('Integration Tests with Real Backend', () => {
 
       expect(result.user).toBeDefined();
       expect(result.user.email).toBe(testEmail);
-      expect(result.token).toBeDefined();
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
       expect(result.user.role).toBe('rider');
 
-      authToken = result.token;
+      authToken = result.accessToken;
       userId = result.user.id;
     }, 10000);
 
@@ -77,23 +73,23 @@ describe('Integration Tests with Real Backend', () => {
 
       expect(result.user).toBeDefined();
       expect(result.user.email).toBe(TEST_USER_EMAIL);
-      expect(result.token).toBeDefined();
+      expect(result.accessToken).toBeDefined();
 
-      authToken = result.token;
+      authToken = result.accessToken;
       userId = result.user.id;
     }, 10000);
 
     it('should validate token and get user profile', async () => {
-      expect(authToken).toBeDefined();
+      expect(authToken).toBeTruthy();
+      expect(userId).toBeTruthy();
 
       // Set token for subsequent requests
-      // Note: Update this based on your API service implementation
-      // apiService.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+      apiService.setDefaultHeader('Authorization', `Bearer ${authToken}`);
 
       const userProfile = await authService.getCurrentUser();
 
-      expect(userProfile).toBeDefined();
-      expect(userProfile.id).toBe(userId);
+      expect(userProfile).not.toBeNull();
+      expect(userProfile?.id).toBe(userId);
     }, 10000);
   });
 
@@ -119,7 +115,7 @@ describe('Integration Tests with Real Backend', () => {
       expect(result).toBeDefined();
       expect(result.id).toBeDefined();
       expect(result.status).toBe('pending');
-      expect(result.riderId).toBe(userId);
+  expect(result.riderId).toBe(userId);
 
       testRideId = result.id;
     }, 15000);
@@ -131,7 +127,7 @@ describe('Integration Tests with Real Backend', () => {
 
       expect(rideDetails).toBeDefined();
       expect(rideDetails.id).toBe(testRideId);
-      expect(rideDetails.riderId).toBe(userId);
+  expect(rideDetails.riderId).toBe(userId);
     }, 10000);
 
     it('should calculate fare estimate', async () => {
@@ -272,7 +268,7 @@ describe('Integration Tests with Real Backend', () => {
           resolve(socket.id);
         });
 
-        socket.on('connect_error', (error) => {
+  socket.on('connect_error', (error: Error) => {
           console.error('❌ Socket connection error:', error);
           reject(error);
         });

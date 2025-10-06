@@ -21,6 +21,8 @@ import { usePayment } from '../../contexts/PaymentContext';
 import { rideService, locationService } from '../../services';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import type { Driver, RideLocation, Ride } from '../../services';
+import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -53,6 +55,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     emitRideRequest,
     emitRideCancel
   } = useSocket();
+  const theme = useAppTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   
   // Map state
   const [region, setRegion] = useState<Region>({
@@ -73,7 +77,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Ride state
   const [currentRide, setCurrentRide] = useState<Ride | null>(null);
   const [estimatedFare, setEstimatedFare] = useState<number>(0);
-  const [rideType, setRideType] = useState<'standard' | 'premium' | 'shared'>('standard');
+  const [rideType, setRideType] = useState<'standard' | 'premium'>('standard');
   
   // UI state
   const [isRequestingRide, setIsRequestingRide] = useState(false);
@@ -81,6 +85,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [locationPermission, setLocationPermission] = useState(false);
   const [showLocationSearch, setShowLocationSearch] = useState<'pickup' | 'dropoff' | null>(null);
   const [locationSearchText, setLocationSearchText] = useState('');
+  const [showRideOptions, setShowRideOptions] = useState(false);
   
   const mapRef = useRef<MapView>(null);
 
@@ -97,6 +102,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   useEffect(() => {
     if (pickupLocation && dropoffLocation) {
       calculateEstimatedFare();
+      setShowRideOptions(true);
+    } else {
+      setShowRideOptions(false);
     }
   }, [pickupLocation, dropoffLocation, rideType]);
 
@@ -412,6 +420,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setPickupLocation(currentLocation);
     setDropoffLocation(null);
     setEstimatedFare(0);
+    setShowRideOptions(false);
+  };
+
+  const clearRideOptions = () => {
+    setShowRideOptions(false);
   };
 
   // 🔔 Test notification function
@@ -466,7 +479,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const getRideTypeText = (type: string) => {
     switch (type) {
       case 'premium': return '(Premium rates)';
-      case 'shared': return '(Shared discount)';
       default: return '(Standard rates)';
     }
   };
@@ -515,7 +527,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {dropoffLocation && (
           <Marker
             coordinate={dropoffLocation}
-            title="Dropoff Location" 
+            title="Dropoff Location"
             description={dropoffLocation.address || 'Destination'}
             pinColor="red"
           />
@@ -548,52 +560,73 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ))}
       </MapView>
 
-      {/* Location Cards */}
-      <Surface style={styles.locationContainer}>
-        {/* Pickup Location */}
-        <Card style={styles.locationCard}>
-          <Card.Content style={styles.locationCardContent}>
-            <View style={styles.locationRow}>
-              <View style={styles.locationDot} />
-              <View style={styles.locationTextContainer}>
-                <Text style={styles.locationLabel}>Pickup</Text>
-                <Text style={styles.locationText} numberOfLines={1}>
-                  {pickupLocation?.address || 'Select pickup location'}
-                </Text>
+      {/* Location Selection */}
+      <Surface elevation={1} style={styles.locationContainer}>
+        <View style={styles.locationPanel}>
+          <View style={styles.locationHeader}>
+            <Text variant="titleSmall" style={styles.locationTitle}>
+              Where to?
+            </Text>
+          </View>
+          
+          <View style={styles.locationInputs}>
+            {/* Pickup Input */}
+            <View style={styles.locationInputRow}>
+              <View style={styles.locationIndicator}>
+                <View style={styles.pickupDot} />
               </View>
-              <IconButton
-                icon="map-marker-plus"
-                size={20}
+              <Button
+                mode="text"
                 onPress={() => setShowLocationSearch('pickup')}
-              />
+                style={styles.locationButton}
+                contentStyle={styles.locationButtonContent}
+                labelStyle={styles.locationButtonText}
+              >
+                {pickupLocation?.address || 'Current location'}
+              </Button>
             </View>
-          </Card.Content>
-        </Card>
 
-        {/* Dropoff Location */}
-        <Card style={styles.locationCard}>
-          <Card.Content style={styles.locationCardContent}>
-            <View style={styles.locationRow}>
-              <View style={[styles.locationDot, { backgroundColor: '#f44336' }]} />
-              <View style={styles.locationTextContainer}>
-                <Text style={styles.locationLabel}>Dropoff</Text>
-                <Text style={styles.locationText} numberOfLines={1}>
-                  {dropoffLocation?.address || 'Select destination'}
-                </Text>
-              </View>
-              <IconButton
-                icon="map-marker-plus"
-                size={20}
-                onPress={() => setShowLocationSearch('dropoff')}
-              />
+            {/* Connector Line */}
+            <View style={styles.locationConnector}>
+              <View style={styles.connectorLine} />
             </View>
-          </Card.Content>
-        </Card>
+
+            {/* Dropoff Input */}
+            <View style={styles.locationInputRow}>
+              <View style={styles.locationIndicator}>
+                <View style={styles.dropoffDot} />
+              </View>
+              <Button
+                mode="text"
+                onPress={() => setShowLocationSearch('dropoff')}
+                style={styles.locationButton}
+                contentStyle={styles.locationButtonContent}
+                labelStyle={[
+                  styles.locationButtonText,
+                  !dropoffLocation && styles.locationButtonPlaceholder
+                ]}
+              >
+                {dropoffLocation?.address || 'Where to?'}
+              </Button>
+            </View>
+          </View>
+        </View>
       </Surface>
 
       {/* Ride Type Selection */}
-      {pickupLocation && dropoffLocation && (
+      {pickupLocation && dropoffLocation && showRideOptions && (
         <Surface style={styles.rideOptionsContainer}>
+          <View style={styles.rideOptionsHeader}>
+            <Text variant="titleMedium" style={styles.rideOptionsTitle}>
+              Ride Options
+            </Text>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={clearRideOptions}
+              style={styles.closeButton}
+            />
+          </View>
           <View style={styles.rideTypeContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Chip
@@ -609,13 +642,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 style={styles.rideTypeChip}
               >
                 Premium
-              </Chip>
-              <Chip
-                selected={rideType === 'shared'}
-                onPress={() => setRideType('shared')}
-                style={styles.rideTypeChip}
-              >
-                Shared
               </Chip>
             </ScrollView>
           </View>
@@ -651,14 +677,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </Button>
         </Surface>
       )}
-
-      {/* Clear Locations FAB */}
-      <FAB
-        icon="refresh"
-        style={styles.clearFab}
-        onPress={clearLocations}
-        size="small"
-      />
 
       {/* My Location FAB */}
       <FAB
@@ -720,7 +738,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <Portal>
         <Modal
           visible={isSearchingDriver}
-          dismissable={false}
+          dismissable={true}
+          onDismiss={() => {
+            setIsSearchingDriver(false);
+            setIsRequestingRide(false);
+          }}
           contentContainerStyle={styles.searchingModal}
         >
           <ActivityIndicator size="large" />
@@ -728,195 +750,302 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Text style={styles.searchingSubtext}>
             We're finding the best driver for your trip
           </Text>
-          {currentRide && (
-            <Button
-              mode="outlined"
-              onPress={() => cancelRideRequest(currentRide?.id)}
-              style={styles.cancelButton}
-            >
-              Cancel Request
-            </Button>
-          )}
+          <Button
+            mode="outlined"
+            onPress={() => {
+              if (currentRide?.id) {
+                cancelRideRequest(currentRide.id);
+              } else {
+                setIsSearchingDriver(false);
+                setIsRequestingRide(false);
+              }
+            }}
+            style={styles.cancelButton}
+          >
+            Cancel Request
+          </Button>
         </Modal>
       </Portal>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  map: {
-    flex: 1,
-  },
-  locationContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
-    right: 16,
-    borderRadius: 12,
-    elevation: 4,
-  },
-  locationCard: {
-    marginBottom: 8,
-  },
-  locationCardContent: {
-    paddingVertical: 12,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#4caf50',
-    marginRight: 12,
-  },
-  locationTextContainer: {
-    flex: 1,
-  },
-  locationLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-  },
-  locationText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  rideOptionsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 16,
-    elevation: 8,
-  },
-  rideTypeContainer: {
-    marginBottom: 16,
-  },
-  rideTypeChip: {
-    marginRight: 8,
-  },
-  fareContainer: {
-    flexDirection: 'column',
-    marginBottom: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-  },
-  fareRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  fareLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  fareAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2196f3',
-  },
-  fareSubtext: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  requestButton: {
-    paddingVertical: 8,
-  },
-  clearFab: {
-    position: 'absolute',
-    top: 100,
-    right: 16,
-  },
-  locationFab: {
-    position: 'absolute',
-    bottom: 200,
-    right: 16,
-  },
-  testNotificationFab: {
-    position: 'absolute',
-    bottom: 140,
-    right: 16,
-    backgroundColor: '#FF6B35',
-  },
-  calloutContainer: {
-    minWidth: 150,
-  },
-  calloutTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  calloutSubtitle: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  searchModal: {
-    backgroundColor: 'white',
-    padding: 20,
-    margin: 20,
-    borderRadius: 12,
-  },
-  searchTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  searchInput: {
-    marginBottom: 16,
-  },
-  searchButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  searchButton: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  searchingModal: {
-    backgroundColor: 'white',
-    padding: 30,
-    margin: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  searchingText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  searchingSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  cancelButton: {
-    marginTop: 20,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      padding: spacing(3),
+    },
+    loadingText: {
+      marginTop: spacing(2),
+      fontSize: 16,
+      color: theme.colors.onSurfaceVariant,
+    },
+    map: {
+      flex: 1,
+    },
+    locationContainer: {
+      position: 'absolute',
+      top: spacing(2),
+      left: spacing(2),
+      right: spacing(2),
+      borderRadius: radii.lg,
+      backgroundColor: theme.colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.outlineVariant,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+    },
+    locationPanel: {
+      padding: spacing(1.5),
+    },
+    locationHeader: {
+      marginBottom: spacing(1),
+    },
+    locationTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    locationInputs: {
+      // Container for pickup and dropoff inputs
+    },
+    locationInputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing(0.75),
+    },
+    locationIndicator: {
+      width: 20,
+      alignItems: 'center',
+      marginRight: spacing(1),
+    },
+    pickupDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.primary,
+    },
+    dropoffDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.colors.error,
+    },
+    locationConnector: {
+      alignItems: 'center',
+      paddingVertical: spacing(0.25),
+    },
+    connectorLine: {
+      width: 2,
+      height: 12,
+      backgroundColor: theme.colors.outlineVariant,
+    },
+    locationButton: {
+      flex: 1,
+      borderRadius: radii.md,
+    },
+    locationButtonContent: {
+      justifyContent: 'flex-start',
+      paddingHorizontal: spacing(1),
+      paddingVertical: spacing(0.75),
+    },
+    locationButtonText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+      textAlign: 'left',
+    },
+    locationButtonPlaceholder: {
+      color: theme.colors.onSurfaceVariant,
+      fontWeight: '400',
+    },
+    locationCard: {
+      marginBottom: spacing(1),
+      borderRadius: radii.md,
+      backgroundColor: theme.colors.surface,
+    },
+    locationCardContent: {
+      paddingVertical: spacing(1.5),
+    },
+    locationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    locationDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: theme.colors.primary,
+      marginRight: spacing(1.5),
+    },
+    locationTextContainer: {
+      flex: 1,
+    },
+    locationLabel: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      marginBottom: 2,
+    },
+    locationText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+    },
+    rideOptionsContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      padding: spacing(3),
+      backgroundColor: theme.colors.surface,
+      borderTopWidth: 1,
+      borderColor: theme.colors.outline,
+      elevation: 12,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.1,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: -4 },
+    },
+    rideTypeContainer: {
+      marginBottom: spacing(2),
+    },
+    rideTypeChip: {
+      marginRight: spacing(1),
+    },
+    fareContainer: {
+      marginBottom: spacing(2),
+      paddingVertical: spacing(1.5),
+      paddingHorizontal: spacing(2),
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    fareRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    fareLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.onSurface,
+    },
+    fareAmount: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: theme.colors.primary,
+    },
+    fareSubtext: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing(0.5),
+    },
+    requestButton: {
+      marginTop: spacing(2),
+      borderRadius: radii.md,
+    },
+    locationFab: {
+      position: 'absolute',
+      bottom: spacing(25),
+      right: spacing(2),
+    },
+    testNotificationFab: {
+      position: 'absolute',
+      bottom: spacing(18),
+      right: spacing(2),
+      backgroundColor: theme.colors.primary,
+    },
+    calloutContainer: {
+      minWidth: 160,
+      paddingRight: spacing(1),
+    },
+    calloutTitle: {
+      fontWeight: '600',
+      fontSize: 14,
+      color: theme.colors.onSurface,
+    },
+    calloutSubtitle: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: 2,
+    },
+    searchModal: {
+      backgroundColor: theme.colors.surface,
+      padding: spacing(3),
+      margin: spacing(3),
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    searchTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: spacing(2),
+      color: theme.colors.onSurface,
+    },
+    searchInput: {
+      marginBottom: spacing(2),
+    },
+    searchButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    searchButton: {
+      flex: 1,
+      marginHorizontal: spacing(0.5),
+      borderRadius: radii.md,
+    },
+    searchingModal: {
+      backgroundColor: theme.colors.surface,
+      padding: spacing(4),
+      margin: spacing(4),
+      borderRadius: radii.lg,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    searchingText: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginTop: spacing(2),
+      textAlign: 'center',
+      color: theme.colors.onSurface,
+    },
+    searchingSubtext: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing(1),
+      textAlign: 'center',
+    },
+    cancelButton: {
+      marginTop: spacing(2),
+      borderRadius: radii.md,
+    },
+    rideOptionsHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing(1.5),
+    },
+    rideOptionsTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    closeButton: {
+      margin: 0,
+    },
+  });
 
 export default HomeScreen;

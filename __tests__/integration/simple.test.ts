@@ -12,14 +12,13 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'password123';
 
 // Skip if not integration environment
 const shouldRun = process.env.RUN_INTEGRATION_TESTS === 'true';
+const describeIntegration = shouldRun ? describe : describe.skip;
 
-describe('Integration Tests - Real Backend', () => {
-  beforeEach(() => {
-    if (!shouldRun) {
-      test.skip('Integration tests disabled - set RUN_INTEGRATION_TESTS=true', () => {});
-      return;
-    }
-  });
+if (!shouldRun) {
+  console.log('⏭️ Skipping simplified integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
+}
+
+describeIntegration('Integration Tests - Real Backend', () => {
 
   describe('Authentication', () => {
     it('should login successfully', async () => {

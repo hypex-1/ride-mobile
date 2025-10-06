@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/28</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -547,7 +547,7 @@ const SocketContext = <span class="cstat-no" title="statement not covered" >crea
 &nbsp;
 export const <span class="cstat-no" title="statement not covered" >useSocket = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(</span>) =</span>&gt; {</span>
   const context = <span class="cstat-no" title="statement not covered" >useContext(SocketContext);</span>
-<span class="cstat-no" title="statement not covered" >  if (context === undefined) {</span>
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (context === undefined) {</span>
 <span class="cstat-no" title="statement not covered" >    throw new Error('useSocket must be used within a SocketProvider');</span>
   }
 <span class="cstat-no" title="statement not covered" >  return context;</span>
@@ -652,7 +652,7 @@ export const <span class="cstat-no" title="statement not covered" >SocketProvide
   };
 &nbsp;
   const disconnectSocket = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.disconnect();</span>
 <span class="cstat-no" title="statement not covered" >      setSocket(null);</span>
 <span class="cstat-no" title="statement not covered" >      setIsConnected(false);</span>
@@ -662,66 +662,66 @@ export const <span class="cstat-no" title="statement not covered" >SocketProvide
 &nbsp;
   // Event handler methods
   const onRideUpdate = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>allback: (data: any) =&gt; void) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.on('rideUpdate', callback);</span>
     }
   };
 &nbsp;
   const onDriverLocation = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>allback: (data: any) =&gt; void) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.on('driverLocation', callback);</span>
     }
   };
 &nbsp;
   const onIncomingRide = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>allback: (data: any) =&gt; void) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.on('incomingRide', callback);</span>
     }
   };
 &nbsp;
   const onRideAccepted = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>allback: (data: any) =&gt; void) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.on('rideAccepted', callback);</span>
     }
   };
 &nbsp;
   const onRideCancelled = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(c</span>allback: (data: any) =&gt; void) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      socket.on('rideCancelled', callback);</span>
     }
   };
 &nbsp;
   // Action methods
   const joinRoom = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(u</span>serId: string | number, role: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      console.log(`🔄 Manually joining room - User: ${userId}, Role: ${role}`);</span>
 <span class="cstat-no" title="statement not covered" >      socket.emit('join', { userId, role });</span>
     }
   };
 &nbsp;
   const emitDriverLocation = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(l</span>ocationData: any) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      console.log('📍 Emitting driver location:', locationData);</span>
 <span class="cstat-no" title="statement not covered" >      socket.emit('driverLocation', locationData);</span>
     }
   };
 &nbsp;
   const emitRideRequest = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(r</span>ideData: any) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      console.log('🚗 Emitting ride request:', rideData);</span>
 <span class="cstat-no" title="statement not covered" >      socket.emit('rideRequest', rideData);</span>
     }
   };
 &nbsp;
   const emitRideAccept = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(r</span>ideId: string | number) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      console.log('✅ Emitting ride accept:', rideId);</span>
 <span class="cstat-no" title="statement not covered" >      socket.emit('rideAccept', { rideId });</span>
     }
   };
 &nbsp;
   const emitRideCancel = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(r</span>ideId: string | number, reason?: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (socket) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (socket) {</span>
 <span class="cstat-no" title="statement not covered" >      console.log('❌ Emitting ride cancel:', { rideId, reason });</span>
 <span class="cstat-no" title="statement not covered" >      socket.emit('rideCancel', { rideId, reason });</span>
     }
@@ -757,7 +757,7 @@ export const <span class="cstat-no" title="statement not covered" >SocketProvide
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-05T22:10:01.465Z
+                at 2025-10-06T02:18:16.320Z
             </div>
         <script src="../prettify.js"></script>
         <script>

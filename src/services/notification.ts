@@ -41,9 +41,21 @@ class NotificationService {
         return null;
       }
 
+      const projectId = process.env.EXPO_PUBLIC_PROJECT_ID?.trim();
+      const isUuid = projectId
+        ? /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/u.test(projectId)
+        : false;
+
+      if (!isUuid) {
+        console.log(
+          '⚠️ Skipping Expo push token fetch: missing valid EXPO_PUBLIC_PROJECT_ID. Set this to your Expo project UUID when building a dev/production client.'
+        );
+        return null;
+      }
+
       // Get the push token
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-project-id',
+        projectId,
       });
 
       console.log('🔔 Push token obtained:', token.data);

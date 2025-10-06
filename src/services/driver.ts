@@ -49,6 +49,11 @@ class DriverService {
       await apiService.patch('/drivers/status', { status });
       console.log(`Driver status updated to: ${status}`);
     } catch (error) {
+      const statusCode = (error as any)?.response?.status;
+      if (statusCode === 404) {
+        console.warn('Driver status endpoint not available. Using mock status handling.');
+        return;
+      }
       console.error('Error updating driver status:', error);
       throw error;
     }
@@ -60,6 +65,11 @@ class DriverService {
       await apiService.put('/drivers/location', location);
       console.log('Driver location updated:', location);
     } catch (error) {
+      const statusCode = (error as any)?.response?.status;
+      if (statusCode === 404) {
+        console.warn('Driver location endpoint not available. Location update skipped.');
+        return;
+      }
       console.error('Error updating driver location:', error);
       throw error;
     }
@@ -120,7 +130,7 @@ class DriverService {
       const response = await apiService.get<DriverStats>('/drivers/stats/today');
       return response;
     } catch (error) {
-      console.error('Error fetching today stats:', error);
+      console.warn('Error fetching today stats, returning mock data:', error);
       return {
         ridesCompleted: 0,
         earnings: 0,

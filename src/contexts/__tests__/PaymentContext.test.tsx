@@ -98,11 +98,11 @@ const TestComponent = () => {
   };
 
   const handleProcessPayment = () => {
-    processRidePayment('ride_123', 35.50);
+    processRidePayment('ride_123', 35.50).catch(() => {});
   };
 
   const handleFetchReceipt = () => {
-    fetchPaymentReceipt('ride_123');
+    fetchPaymentReceipt('ride_123').catch(() => {});
   };
 
   return (
@@ -269,7 +269,7 @@ describe('PaymentContext', () => {
       const { processRidePayment } = usePayment();
 
       const handleInvalidPayment = () => {
-        processRidePayment('ride_123', -10); // Invalid amount
+        processRidePayment('ride_123', -10).catch(() => {}); // Invalid amount
       };
 
       return (

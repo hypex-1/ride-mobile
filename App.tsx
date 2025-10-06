@@ -5,10 +5,11 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { PaymentProvider } from './src/contexts/PaymentContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import { paperTheme } from './src/theme';
 
 export default function App() {
   return (
-    <PaperProvider>
+    <PaperProvider theme={paperTheme}>
       <AuthProvider>
         <NotificationProvider>
           <PaymentProvider>

@@ -192,6 +192,18 @@ class ApiService {
       console.error('Error saving user data:', error);
     }
   }
+
+  public getBaseURL(): string | undefined {
+    return this.axiosInstance.defaults.baseURL;
+  }
+
+  public setBaseURL(url: string): void {
+    this.axiosInstance.defaults.baseURL = url;
+  }
+
+  public setDefaultHeader(key: string, value: string): void {
+    this.axiosInstance.defaults.headers.common[key] = value;
+  }
 }
 
 // Export singleton instance

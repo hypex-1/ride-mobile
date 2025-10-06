@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import { useAuth } from './AuthContext';
 import { notificationService } from '../services/notification';
@@ -27,7 +26,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [listeners, setListeners] = useState<any>(null);
   const { user } = useAuth();
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (user) {

@@ -11,13 +11,13 @@ import {
   Button,
   Text,
   Card,
-  Title,
-  Paragraph,
   HelperText,
 } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginCredentials } from '../../services/auth';
 import { validateEmail } from '../../utils';
+import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 interface LoginScreenProps {
   navigation: any;
@@ -25,6 +25,8 @@ interface LoginScreenProps {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { login, isLoading } = useAuth();
+  const theme = useAppTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -68,13 +70,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.title}>Welcome Back</Title>
-            <Paragraph style={styles.subtitle}>
-              Sign in to your RideShare account
-            </Paragraph>
+      <View style={styles.inner}>
+        <View style={styles.branding}>
+          <Text variant="headlineSmall" style={styles.brandTitle}>
+            Welcome back 👋
+          </Text>
+          <Text variant="bodyMedium" style={styles.brandSubtitle}>
+            Sign in to continue your journey
+          </Text>
+        </View>
+
+        <Card style={styles.card} mode="elevated">
+          <Card.Content style={styles.cardContent}>
+            <Text variant="titleMedium" style={styles.formTitle}>
+              Sign in to RideShare
+            </Text>
 
             {/* Email */}
             <TextInput
@@ -135,17 +145,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               loading={isLoading}
               disabled={isLoading}
               style={styles.button}
+              contentStyle={styles.buttonContent}
             >
               Sign In
             </Button>
 
             {/* Register Link */}
             <View style={styles.registerLink}>
-              <Text>Don't have an account? </Text>
+              <Text variant="bodyMedium" style={styles.registerText}>
+                Don't have an account?
+              </Text>
               <Button
                 mode="text"
                 onPress={() => navigation.navigate('Register')}
                 compact
+                textColor={theme.colors.primary}
               >
                 Sign Up
               </Button>
@@ -157,61 +171,87 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  card: {
-    padding: 16,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  input: {
-    marginBottom: 4,
-  },
-  button: {
-    marginTop: 16,
-    paddingVertical: 8,
-  },
-  registerLink: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  testSection: {
-    marginVertical: 16,
-    padding: 12,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-  },
-  testTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-    color: '#666',
-  },
-  testButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  testButton: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    inner: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: spacing(3),
+    },
+    branding: {
+      marginBottom: spacing(3),
+    },
+    brandTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    brandSubtitle: {
+      marginTop: spacing(0.5),
+      color: theme.colors.onSurfaceVariant,
+    },
+    card: {
+      borderRadius: radii.lg,
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      overflow: 'hidden',
+    },
+    cardContent: {
+      paddingVertical: spacing(2),
+    },
+    formTitle: {
+      marginBottom: spacing(2),
+      textAlign: 'center',
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    input: {
+      marginBottom: spacing(1),
+    },
+    testSection: {
+      marginVertical: spacing(2),
+      padding: spacing(2),
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    testTitle: {
+      fontSize: 12,
+      fontWeight: '600',
+      marginBottom: spacing(1),
+      textAlign: 'center',
+      color: theme.colors.onSurfaceVariant,
+    },
+    testButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    testButton: {
+      flex: 1,
+      borderRadius: radii.sm,
+      marginHorizontal: spacing(0.5),
+    },
+    button: {
+      marginTop: spacing(2),
+      borderRadius: radii.md,
+    },
+    buttonContent: {
+      height: 52,
+    },
+    registerLink: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: spacing(2),
+    },
+    registerText: {
+      color: theme.colors.onSurfaceVariant,
+    },
+  });
 
 export default LoginScreen;

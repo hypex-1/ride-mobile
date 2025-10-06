@@ -46,15 +46,27 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('react-native-paper', () => ({
-  Provider: ({ children }) => children,
-  Button: ({ children, onPress, ...props }) => 
-    require('react').createElement('TouchableOpacity', { onPress, testID: props.testID }, children),
-  Text: ({ children, ...props }) => 
-    require('react').createElement('Text', props, children),
-  Chip: ({ children, ...props }) => 
-    require('react').createElement('View', props, children),
-}));
+jest.mock('react-native-paper', () => {
+  const React = require('react');
+  const createElement = React.createElement;
+
+  const createSimpleComponent = (type) => ({ children, ...props }) =>
+    createElement(type, props, children);
+
+  return {
+    __esModule: true,
+    Provider: ({ children }) => children,
+    Button: ({ children, onPress, ...props }) =>
+      createElement('TouchableOpacity', { ...props, onPress }, children),
+    Text: createSimpleComponent('Text'),
+    Chip: ({ children, ...props }) => createElement('Text', props, children),
+    Card: createSimpleComponent('View'),
+    Divider: createSimpleComponent('View'),
+    Surface: createSimpleComponent('View'),
+    Icon: ({ source, color, size, ...props }) =>
+      createElement('Text', { ...props, 'data-icon-source': source, 'data-icon-color': color, 'data-icon-size': size }, source),
+  };
+});
 
 // Mock React Native components
 jest.mock('react-native', () => ({
@@ -64,6 +76,15 @@ jest.mock('react-native', () => ({
   ScrollView: 'ScrollView',
   StyleSheet: {
     create: (styles) => styles,
+    flatten: (input) => {
+      if (!Array.isArray(input)) {
+        return input || {};
+      }
+      return input.reduce((acc, style) => {
+        if (!style) return acc;
+        return { ...acc, ...(Array.isArray(style) ? style.reduce((innerAcc, innerStyle) => ({ ...innerAcc, ...(innerStyle || {}) }), {}) : style) };
+      }, {});
+    },
   },
   Platform: {
     OS: 'ios',

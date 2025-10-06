@@ -12,14 +12,14 @@ import {
   Button,
   Text,
   Card,
-  Title,
-  Paragraph,
   RadioButton,
   HelperText,
 } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { RegisterData } from '../../services/auth';
 import { validateEmail } from '../../utils';
+import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 interface RegisterScreenProps {
   navigation: any;
@@ -27,6 +27,8 @@ interface RegisterScreenProps {
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const { register, isLoading } = useAuth();
+  const theme = useAppTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   const [formData, setFormData] = useState<RegisterData>({
     firstName: '',
@@ -107,27 +109,32 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.title}>Create Account</Title>
-            <Paragraph style={styles.subtitle}>
-              Join RideShare as a {formData.role}
-            </Paragraph>
+        <View style={styles.branding}>
+          <Text variant="headlineSmall" style={styles.brandTitle}>
+            Create your account
+          </Text>
+          <Text variant="bodyMedium" style={styles.brandSubtitle}>
+            Join RideShare as a {formData.role}
+          </Text>
+        </View>
+
+        <Card style={styles.card} mode="elevated">
+          <Card.Content style={styles.cardContent}>
 
             {/* Role Selection */}
             <View style={styles.roleContainer}>
-              <Text style={styles.roleLabel}>I want to:</Text>
+              <Text variant="bodyMedium" style={styles.roleLabel}>I want to:</Text>
               <RadioButton.Group
                 onValueChange={(value) => setFormData({...formData, role: value as 'rider' | 'driver'})}
                 value={formData.role}
               >
                 <View style={styles.radioItem}>
                   <RadioButton value="rider" />
-                  <Text>Request rides (Rider)</Text>
+                  <Text variant="bodyMedium">Request rides (Rider)</Text>
                 </View>
                 <View style={styles.radioItem}>
                   <RadioButton value="driver" />
-                  <Text>Provide rides (Driver)</Text>
+                  <Text variant="bodyMedium">Provide rides (Driver)</Text>
                 </View>
               </RadioButton.Group>
             </View>
@@ -222,17 +229,19 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               loading={isLoading}
               disabled={isLoading}
               style={styles.button}
+              contentStyle={styles.buttonContent}
             >
               Create {formData.role === 'rider' ? 'Rider' : 'Driver'} Account
             </Button>
 
             {/* Login Link */}
             <View style={styles.loginLink}>
-              <Text>Already have an account? </Text>
+              <Text variant="bodyMedium" style={styles.loginText}>Already have an account?</Text>
               <Button
                 mode="text"
                 onPress={() => navigation.navigate('Login')}
                 compact
+                textColor={theme.colors.primary}
               >
                 Sign In
               </Button>
@@ -244,53 +253,76 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  card: {
-    padding: 16,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  roleContainer: {
-    marginBottom: 16,
-  },
-  roleLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  radioItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  input: {
-    marginBottom: 4,
-  },
-  button: {
-    marginTop: 16,
-    paddingVertical: 8,
-  },
-  loginLink: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: spacing(3),
+    },
+    branding: {
+      marginBottom: spacing(2),
+    },
+    brandTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+      marginBottom: spacing(0.5),
+    },
+    brandSubtitle: {
+      color: theme.colors.onSurfaceVariant,
+    },
+    card: {
+      borderRadius: radii.lg,
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      overflow: 'hidden',
+    },
+    cardContent: {
+      paddingVertical: spacing(2),
+    },
+    roleContainer: {
+      marginBottom: spacing(2.5),
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      padding: spacing(2),
+    },
+    roleLabel: {
+      fontWeight: '600',
+      marginBottom: spacing(1),
+      color: theme.colors.onSurface,
+    },
+    radioItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: spacing(1),
+    },
+    input: {
+      marginBottom: spacing(1),
+    },
+    button: {
+      marginTop: spacing(2),
+      borderRadius: radii.md,
+    },
+    buttonContent: {
+      height: 52,
+    },
+    loginLink: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: spacing(3),
+    },
+    loginText: {
+      marginRight: spacing(1),
+      color: theme.colors.onSurfaceVariant,
+    },
+  });
 
 export default RegisterScreen;

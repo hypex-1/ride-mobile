@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">10.52% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/76</span>
+                <span class='fraction'>8/76</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">8.1% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/74</span>
+                <span class='fraction'>6/74</span>
             </div>
         
             
@@ -226,9 +226,9 @@
 <a name='L161'></a><a href='#L161'>161</a>
 <a name='L162'></a><a href='#L162'>162</a>
 <a name='L163'></a><a href='#L163'>163</a>
-<a name='L164'></a><a href='#L164'>164</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L164'></a><a href='#L164'>164</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -240,15 +240,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -383,15 +383,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';</span>
-<span class="cstat-no" title="statement not covered" >import { authService, LoginCredentials, RegisterData, User } from '../services/auth';</span>
-<span class="cstat-no" title="statement not covered" >import { notificationService } from '../services/notification';</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService, LoginCredentials, RegisterData, User } from '../services/auth';
+import { notificationService } from '../services/notification';
 &nbsp;
 interface AuthContextType {
   user: User | null;
@@ -403,13 +403,13 @@ interface AuthContextType {
   refreshUser: () =&gt; Promise&lt;void&gt;;
 }
 &nbsp;
-const AuthContext = <span class="cstat-no" title="statement not covered" >createContext&lt;AuthContextType | undefined&gt;(undefined);</span>
+const AuthContext = createContext&lt;AuthContextType | undefined&gt;(undefined);
 &nbsp;
 interface AuthProviderProps {
   children: ReactNode;
 }
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >AuthProvider: React.FC&lt;AuthProviderProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(</span>{</span> children }) =&gt; {</span>
+export const AuthProvider: React.FC&lt;AuthProviderProps&gt; = <span class="fstat-no" title="function not covered" >({</span> children }) =&gt; {
   const [user, setUser] = <span class="cstat-no" title="statement not covered" >useState&lt;User | null&gt;(null);</span>
   const [isLoading, setIsLoading] = <span class="cstat-no" title="statement not covered" >useState(true);</span>
 &nbsp;
@@ -546,9 +546,9 @@ export const <span class="cstat-no" title="statement not covered" >AuthProvider:
   );
 };
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >useAuth = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(</span>): AuthContextType =</span>&gt; {</span>
+export const useAuth = <span class="fstat-no" title="function not covered" >(): AuthContextType =</span>&gt; {
   const context = <span class="cstat-no" title="statement not covered" >useContext(AuthContext);</span>
-<span class="cstat-no" title="statement not covered" >  if (!context) {</span>
+<span class="cstat-no" title="statement not covered" >  <span class="missing-if-branch" title="if path not taken" >I</span>if (!context) {</span>
 <span class="cstat-no" title="statement not covered" >    throw new Error('useAuth must be used within an AuthProvider');</span>
   }
 <span class="cstat-no" title="statement not covered" >  return context;</span>
@@ -559,7 +559,7 @@ export const <span class="cstat-no" title="statement not covered" >useAuth = <sp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-05T22:10:01.465Z
+                at 2025-10-06T02:18:16.320Z
             </div>
         <script src="../prettify.js"></script>
         <script>

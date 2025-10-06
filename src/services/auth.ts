@@ -27,7 +27,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  role: 'rider' | 'driver';
+  role: 'rider' | 'driver' | 'RIDER' | 'DRIVER';
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;

@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/40</span>
+                <span class='fraction'>0/32</span>
             </div>
         
             
@@ -1011,7 +1011,7 @@ class RideService {
 <span class="cstat-no" title="statement not covered" >      console.log('Nearby drivers response:', response);</span>
       
       // If no drivers from API, return mock drivers for development
-<span class="cstat-no" title="statement not covered" >      if (!response || response.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!response || response.length === 0) {</span>
 <span class="cstat-no" title="statement not covered" >        console.log('No real drivers found, returning mock drivers for development');</span>
 <span class="cstat-no" title="statement not covered" >        return this.getMockDrivers(pickupLat, pickupLng);</span>
       }
@@ -1106,13 +1106,13 @@ class RideService {
       const rideIdStr = <span class="cstat-no" title="statement not covered" >String(rideId);</span>
       
       // Check if rideId is valid
-<span class="cstat-no" title="statement not covered" >      if (!rideIdStr || rideIdStr === 'undefined' || rideIdStr === 'null') {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (!rideIdStr || rideIdStr === 'undefined' || rideIdStr === 'null') {</span>
 <span class="cstat-no" title="statement not covered" >        console.error('Cannot cancel ride: rideId is invalid:', rideIdStr);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
       
       // Handle mock rides
-<span class="cstat-no" title="statement not covered" >      if (rideIdStr.startsWith('mock-ride-')) {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (rideIdStr.startsWith('mock-ride-')) {</span>
 <span class="cstat-no" title="statement not covered" >        console.log('Cancelling mock ride:', rideIdStr);</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
@@ -1126,7 +1126,7 @@ class RideService {
       
       // For mock rides or development, don't throw error
       const rideIdStr = <span class="cstat-no" title="statement not covered" >String(rideId);</span>
-<span class="cstat-no" title="statement not covered" >      if (rideIdStr &amp;&amp; rideIdStr.startsWith('mock-ride-')) {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (rideIdStr &amp;&amp; rideIdStr.startsWith('mock-ride-')) {</span>
 <span class="cstat-no" title="statement not covered" >        return;</span>
       }
       
@@ -1211,11 +1211,11 @@ class RideService {
       const isNightTime = <span class="cstat-no" title="statement not covered" >currentHour &gt;= 22 || currentHour &lt;= 6;</span> // 22h-06h night rate
       const isWeekend = <span class="cstat-no" title="statement not covered" >new Date().getDay() === 0 || new Date().getDay() === 6;</span> // Weekend surcharge
       
-<span class="cstat-no" title="statement not covered" >      if (isNightTime) {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (isNightTime) {</span>
 <span class="cstat-no" title="statement not covered" >        estimatedFare *= (1 + rates.nightSurcharge);</span>
       }
       
-<span class="cstat-no" title="statement not covered" >      if (isWeekend) {</span>
+<span class="cstat-no" title="statement not covered" >      <span class="missing-if-branch" title="if path not taken" >I</span>if (isWeekend) {</span>
 <span class="cstat-no" title="statement not covered" >        estimatedFare *= (1 + rates.holidaySurcharge);</span>
       }
       
@@ -1258,12 +1258,12 @@ class RideService {
     const isNightTime = <span class="cstat-no" title="statement not covered" >currentHour &gt;= 22 || currentHour &lt;= 6;</span>
     const isWeekend = <span class="cstat-no" title="statement not covered" >new Date().getDay() === 0 || new Date().getDay() === 6;</span>
     
-<span class="cstat-no" title="statement not covered" >    if (isNightTime) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (isNightTime) {</span>
 <span class="cstat-no" title="statement not covered" >      surcharges.night = rates.nightSurcharge;</span>
 <span class="cstat-no" title="statement not covered" >      total *= (1 + rates.nightSurcharge);</span>
     }
     
-<span class="cstat-no" title="statement not covered" >    if (isWeekend) {</span>
+<span class="cstat-no" title="statement not covered" >    <span class="missing-if-branch" title="if path not taken" >I</span>if (isWeekend) {</span>
 <span class="cstat-no" title="statement not covered" >      surcharges.weekend = rates.holidaySurcharge;</span>
 <span class="cstat-no" title="statement not covered" >      total *= (1 + rates.holidaySurcharge);</span>
     }
@@ -1369,7 +1369,7 @@ class RideService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-05T22:10:01.465Z
+                at 2025-10-06T02:18:16.320Z
             </div>
         <script src="../prettify.js"></script>
         <script>

@@ -10,7 +10,6 @@ import {
   Portal, 
   Modal,
   List,
-  Avatar,
   Divider
 } from 'react-native-paper';
 import MapView, { Marker, Region } from 'react-native-maps';
@@ -20,6 +19,8 @@ import { driverService, locationService } from '../../services';
 import type { RideRequest } from '../../services/driver';
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
+import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -45,6 +46,8 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
     emitDriverLocation,
     emitRideAccept
   } = useSocket();
+  const theme = useAppTheme();
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
   
   // Driver state
   const [isAvailable, setIsAvailable] = useState(false);
@@ -315,7 +318,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   if (!locationPermission) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" />
+  <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Requesting location permissions...</Text>
       </View>
     );
@@ -339,7 +342,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
             }}
             title="Your Location"
             description="Driver position"
-            pinColor={isAvailable ? "green" : "red"}
+            pinColor={isAvailable ? theme.colors.tertiary : theme.colors.error}
           />
         )}
       </MapView>
@@ -360,7 +363,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
               <Switch
                 value={isAvailable}
                 onValueChange={toggleAvailability}
-                color="#4caf50"
+                color={theme.colors.tertiary}
               />
             </View>
           </Card.Content>
@@ -454,111 +457,136 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  map: {
-    flex: 1,
-  },
-  statusPanel: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
-    right: 16,
-    borderRadius: 12,
-    elevation: 4,
-  },
-  statusContent: {
-    paddingVertical: 16,
-  },
-  availabilityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  statusSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  statsPanel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    elevation: 8,
-  },
-  panelTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2196f3',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  rideModal: {
-    backgroundColor: 'white',
-    margin: 20,
-    borderRadius: 12,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#2196f3',
-  },
-  divider: {
-    marginVertical: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  declineButton: {
-    flex: 1,
-    marginRight: 8,
-  },
-  acceptButton: {
-    flex: 1,
-    marginLeft: 8,
-  },
-});
+const createStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      padding: spacing(3),
+    },
+    loadingText: {
+      marginTop: spacing(2),
+      fontSize: 16,
+      color: theme.colors.onSurfaceVariant,
+    },
+    map: {
+      flex: 1,
+    },
+    statusPanel: {
+      position: 'absolute',
+      top: spacing(8),
+      left: spacing(2),
+      right: spacing(2),
+      borderRadius: radii.lg,
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+      elevation: 6,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+    },
+    statusContent: {
+      paddingVertical: spacing(2),
+      paddingHorizontal: spacing(2.5),
+    },
+    availabilityRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    statusTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+    },
+    statusSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing(0.5),
+    },
+    statsPanel: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      backgroundColor: theme.colors.surface,
+      borderTopWidth: 1,
+      borderColor: theme.colors.outline,
+      elevation: 10,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.12,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: -4 },
+    },
+    panelTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: spacing(2),
+      color: theme.colors.onSurface,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: theme.colors.primary,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing(0.5),
+    },
+    rideModal: {
+      backgroundColor: theme.colors.surface,
+      margin: spacing(3),
+      borderRadius: radii.lg,
+      padding: spacing(3),
+      maxHeight: '80%',
+      borderWidth: 1,
+      borderColor: theme.colors.outline,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      textAlign: 'center',
+      marginBottom: spacing(2.5),
+      color: theme.colors.primary,
+    },
+    divider: {
+      marginVertical: spacing(2),
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: theme.colors.outline,
+    },
+    modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: spacing(2),
+    },
+    declineButton: {
+      flex: 1,
+      marginRight: spacing(1),
+      borderRadius: radii.md,
+    },
+    acceptButton: {
+      flex: 1,
+      marginLeft: spacing(1),
+      borderRadius: radii.md,
+    },
+  });
 
 export default DriverHomeScreen;
