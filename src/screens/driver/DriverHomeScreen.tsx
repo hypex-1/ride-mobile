@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Dimensions, AppState } from 'react-native';
+import { View, StyleSheet, Alert, Dimensions, AppState, SafeAreaView } from 'react-native';
 import { 
   Surface, 
   Card, 
@@ -10,7 +10,9 @@ import {
   Portal, 
   Modal,
   List,
-  Divider
+  Divider,
+  IconButton,
+  Avatar
 } from 'react-native-paper';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { useAuth } from '../../contexts/AuthContext';
@@ -325,7 +327,31 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* Header with navigation and profile */}
+      <Surface elevation={0} style={styles.header}>
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        />
+        <View style={styles.headerContent}>
+          <Text variant="titleMedium" style={styles.headerTitle}>
+            Driver Dashboard
+          </Text>
+          <Text variant="bodySmall" style={styles.headerSubtitle}>
+            {isAvailable ? 'Online - Accepting rides' : 'Offline'}
+          </Text>
+        </View>
+        <IconButton
+          icon="account-circle"
+          size={24}
+          onPress={() => navigation.navigate('Settings')}
+          style={styles.profileButton}
+        />
+      </Surface>
+
       {/* Map */}
       <MapView
         ref={mapRef}
@@ -453,7 +479,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
           )}
         </Modal>
       </Portal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -462,6 +488,34 @@ const createStyles = (theme: AppTheme) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing(1),
+      paddingVertical: spacing(1),
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.outlineVariant,
+    },
+    backButton: {
+      margin: 0,
+    },
+    profileButton: {
+      margin: 0,
+    },
+    headerContent: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    headerTitle: {
+      color: theme.colors.onSurface,
+      fontWeight: '600',
+    },
+    headerSubtitle: {
+      color: theme.colors.onSurfaceVariant,
+      marginTop: spacing(0.25),
     },
     centerContainer: {
       flex: 1,

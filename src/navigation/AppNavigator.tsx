@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { SocketProvider } from '../contexts/SocketContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { IconButton } from 'react-native-paper';
 import { RootStackParamList } from '../types/navigation';
 import { navigationTheme, useAppTheme } from '../theme';
 import type { AppTheme } from '../theme';
@@ -58,7 +59,7 @@ const AppNavigator: React.FC = () => {
                 <Stack.Screen 
                   name="DriverHome" 
                   component={DriverHomeScreen}
-                  options={{ title: 'Driver Dashboard', headerShown: true }}
+                  options={{ headerShown: false }}
                 />
               )}
               <Stack.Screen 
@@ -74,7 +75,16 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="Dashboard" 
                 component={DashboardScreen}
-                options={{ title: `${user.role === 'driver' ? 'Driver' : 'Rider'} Dashboard` }}
+                options={({ navigation }) => ({ 
+                  title: `${user.role === 'driver' ? 'Driver' : 'Rider'} Dashboard`,
+                  headerRight: () => (
+                    <IconButton
+                      icon="cog"
+                      size={24}
+                      onPress={() => navigation.navigate('Settings')}
+                    />
+                  ),
+                })}
               />
               <Stack.Screen 
                 name="Home" 
