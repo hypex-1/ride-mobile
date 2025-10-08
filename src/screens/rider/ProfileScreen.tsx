@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, IconButton, Avatar, Divider, List } from 'react-native-paper';
+import { Text, IconButton, Avatar, Divider, List, Button } from 'react-native-paper';
 import { useAuth } from '../../contexts/AuthContext';
 import { ProfileScreenProps } from '../../types/navigation';
 import { spacing, radii, useAppTheme } from '../../theme';
 import type { AppTheme } from '../../theme';
+import { rideService } from '../../services';
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -15,6 +16,25 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [email, setEmail] = React.useState(user?.email || '');
   const [phone, setPhone] = React.useState('+216 55 123 456');
   const [isEditing, setIsEditing] = React.useState(false);
+  const [completedTrips, setCompletedTrips] = React.useState<number>(0);
+  const [totalSpent, setTotalSpent] = React.useState<number>(0);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadStatistics = async () => {
+      try {
+        const stats = await rideService.getRideStatistics();
+        setCompletedTrips(stats.completedTrips);
+        setTotalSpent(stats.totalSpent);
+      } catch (error) {
+        console.error('Failed to load ride statistics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStatistics();
+  }, []);
 
   const handleSave = () => {
     // TODO: Implement profile update API call
@@ -37,21 +57,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           text: 'Logout',
           style: 'destructive',
           onPress: () => logout(),
-        },
-      ]
-    );
-  };
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete Account',
-          style: 'destructive',
-          onPress: () => navigateTo('DeleteAccount'),
         },
       ]
     );
@@ -111,14 +116,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
             <List.Item
               title="Completed Trips"
-              right={() => <Text style={styles.statValue}>23</Text>}
+              right={() => <Text style={styles.statValue}>{loading ? '...' : completedTrips}</Text>}
               left={(props) => <List.Icon {...props} icon="car" />}
             />
             <Divider />
             
             <List.Item
               title="Total Spent"
-              right={() => <Text style={styles.statValue}>TND 156.50</Text>}
+              right={() => <Text style={styles.statValue}>{loading ? '...' : `TND ${totalSpent.toFixed(3)}`}</Text>}
               left={(props) => <List.Icon {...props} icon="cash" />}
             />
             <Divider />
@@ -132,14 +137,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <Divider />
             
             <List.Item
-              title="Saved Places"
-              left={(props) => <List.Icon {...props} icon="heart" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigateTo('SavedPlaces')}
-            />
-            <Divider />
-            
-            <List.Item
               title="Payment Methods"
               left={(props) => <List.Icon {...props} icon="credit-card" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
@@ -148,26 +145,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             <Divider />
             
             <List.Item
-              title="Support"
-              left={(props) => <List.Icon {...props} icon="help-circle" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigateTo('Support')}
-            />
-            <Divider />
-            
-            <List.Item
               title="Logout"
               titleStyle={{ color: theme.colors.error }}
               left={(props) => <List.Icon {...props} icon="logout" color={theme.colors.error} />}
               onPress={handleLogout}
-            />
-            <Divider />
-            
-            <List.Item
-              title="Delete Account"
-              titleStyle={{ color: theme.colors.error }}
-              left={(props) => <List.Icon {...props} icon="account-remove" color={theme.colors.error} />}
-              onPress={handleDeleteAccount}
             />
           </View>
         </ScrollView>

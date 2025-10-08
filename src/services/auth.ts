@@ -1,5 +1,6 @@
 import { apiService } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 // Auth Types
 export interface LoginCredentials {
@@ -37,6 +38,31 @@ export interface User {
   phoneNumber?: string;
   profilePicture?: string;
 }
+
+const resolveCustomDeleteEndpoints = (): string[] => {
+  const extraConfig = (Constants as any)?.expoConfig?.extra;
+  const extraEndpoints = extraConfig?.deleteAccountEndpoints;
+  const envEndpoints =
+    process.env.EXPO_PUBLIC_DELETE_ACCOUNT_ENDPOINTS ||
+    process.env.DELETE_ACCOUNT_ENDPOINTS ||
+    process.env.DELETE_ACCOUNT_ENDPOINT;
+
+  const normalize = (value: unknown): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) {
+      return value.filter(Boolean).map((item) => String(item));
+    }
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  return [...new Set([...normalize(extraEndpoints), ...normalize(envEndpoints)])];
+};
 
 export interface AuthResponse {
   user: User;
@@ -189,7 +215,151 @@ class AuthService {
       console.error('Update profile error:', error);
       throw new Error(error?.response?.data?.message || 'Profile update failed');
     }
-  }  // Delete account
+  }  
+  
+  // Verify password for sensitive operations
+  public async verifyPassword(password: string): Promise<boolean> {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user?.email) {
+        throw new Error('User email not found');
+      }
+      
+      // Attempt to verify password by making a verification request
+      await apiService.post('/auth/verify-password', { password });
+      return true;
+    } catch (error: any) {
+      console.error('Password verification error:', error);
+      return false;
+    }
+  }
+  
+  // Delete account with password confirmation
+  public async deleteAccountWithPassword(password: string): Promise<void> {
+    if (!password) {
+      throw new Error('Password is required');
+    }
+
+    let deletionSucceeded = false;
+    let lastError: any = null;
+
+    try {
+      // 1) Try dedicated delete endpoint that accepts password in payload
+      try {
+        await apiService.post('/auth/delete-account', { password });
+        deletionSucceeded = true;
+        return;
+      } catch (error: any) {
+        lastError = error;
+        if (error?.response?.status && ![404, 405].includes(error.response.status)) {
+          throw this.normalizeAxiosError(error, 'Account deletion failed');
+        }
+        console.log('Primary delete endpoint unavailable, attempting password verification fallbacks');
+      }
+
+      // 2) Attempt password verification via dedicated endpoint
+      let passwordVerified = false;
+      try {
+        await apiService.post('/auth/verify-password', { password });
+        passwordVerified = true;
+      } catch (verifyError: any) {
+        if (verifyError?.response?.status && ![404, 405].includes(verifyError.response.status)) {
+          throw this.normalizeAxiosError(verifyError, 'Password verification failed');
+        }
+        console.log('Password verification endpoint unavailable, using login-based verification');
+      }
+
+      // 3) Fall back to login-based verification if needed
+      if (!passwordVerified) {
+        const user = await this.getCurrentUser();
+        if (!user?.email) {
+          throw new Error('Unable to determine your email address for verification. Please login again.');
+        }
+
+        try {
+          await this.login({ email: user.email, password });
+          passwordVerified = true;
+        } catch (loginError: any) {
+          throw new Error('Incorrect password. Please try again.');
+        }
+      }
+
+      // 4) Attempt deletion using known fallback endpoints
+      const userId = (await this.getCurrentUser())?.id;
+
+      const customDeleteAttempts = resolveCustomDeleteEndpoints()
+        .map((entry) => {
+          const trimmed = entry.trim();
+          if (!trimmed) return null;
+
+          const [maybeMethod, ...rest] = trimmed.split(/\s+/);
+          const normalizedMethod = maybeMethod?.toLowerCase();
+          const isExplicitMethod = normalizedMethod === 'delete' || normalizedMethod === 'post';
+          const method: 'delete' | 'post' = isExplicitMethod ? (normalizedMethod as 'delete' | 'post') : 'delete';
+          const url = (isExplicitMethod ? rest.join(' ') : trimmed).trim();
+
+          if (!url) {
+            return null;
+          }
+
+          const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+          return {
+            method,
+            url: normalizedUrl,
+            data: method === 'post' ? { password } : undefined,
+          };
+        })
+        .filter(Boolean) as Array<{ method: 'delete' | 'post'; url: string; data?: any }>;
+
+      const deleteAttempts: Array<{ method: 'delete' | 'post'; url: string; data?: any }> = [
+        ...customDeleteAttempts,
+        { method: 'delete', url: '/users/me' },
+        { method: 'delete', url: '/auth/account' },
+        { method: 'post', url: '/users/delete', data: { password } },
+        userId ? { method: 'delete', url: `/users/${userId}` } : null,
+        userId ? { method: 'post', url: `/users/${userId}/delete`, data: { password } } : null,
+        { method: 'post', url: '/auth/delete', data: { password } },
+      ].filter(Boolean) as Array<{ method: 'delete' | 'post'; url: string; data?: any }>;
+
+      for (const attempt of deleteAttempts) {
+        try {
+          if (attempt.method === 'delete') {
+            await apiService.delete(attempt.url);
+          } else {
+            await apiService.post(attempt.url, attempt.data);
+          }
+          deletionSucceeded = true;
+          console.log(`Account deleted via endpoint ${attempt.method.toUpperCase()} ${attempt.url}`);
+          break;
+        } catch (attemptError: any) {
+          lastError = attemptError;
+          const status = attemptError?.response?.status;
+          if (status && ![404, 405].includes(status)) {
+            throw this.normalizeAxiosError(attemptError, 'Account deletion failed');
+          }
+          console.log(`Endpoint ${attempt.method.toUpperCase()} ${attempt.url} unavailable (status ${status}). Trying next option.`);
+        }
+      }
+
+      if (!deletionSucceeded) {
+        const errorMessage = lastError?.response?.status === 404
+          ? 'Account deletion service is unavailable. Please contact support.'
+          : 'Account deletion failed. Please try again later.';
+        throw new Error(errorMessage);
+      }
+    } finally {
+      if (deletionSucceeded) {
+        await apiService.clearAuthData();
+      }
+    }
+  }
+
+  private normalizeAxiosError(error: any, fallbackMessage: string): Error {
+    const message = error?.response?.data?.message || error?.message || fallbackMessage;
+    return new Error(message);
+  }
+  
+  // Delete account (legacy method without password verification)
   public async deleteAccount(): Promise<void> {
     try {
       await apiService.delete('/auth/account');

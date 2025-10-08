@@ -35,9 +35,7 @@ export type RootStackParamList = {
     };
   };
   RideHistory: undefined;
-  SavedPlaces: undefined;
   PaymentMethods: undefined;
-  Support: undefined;
   Promotions: undefined;
 };
 
@@ -49,9 +47,7 @@ export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>
 export type RideTrackingScreenProps = NativeStackScreenProps<RootStackParamList, 'RideTracking'>;
 export type RideReceiptScreenProps = NativeStackScreenProps<RootStackParamList, 'RideReceipt'>;
 export type RideHistoryScreenProps = NativeStackScreenProps<RootStackParamList, 'RideHistory'>;
-export type SavedPlacesScreenProps = NativeStackScreenProps<RootStackParamList, 'SavedPlaces'>;
 export type PaymentMethodsScreenProps = NativeStackScreenProps<RootStackParamList, 'PaymentMethods'>;
-export type SupportScreenProps = NativeStackScreenProps<RootStackParamList, 'Support'>;
 export type PromotionsScreenProps = NativeStackScreenProps<RootStackParamList, 'Promotions'>;
 export type EditProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 export type DeleteAccountScreenProps = NativeStackScreenProps<RootStackParamList, 'DeleteAccount'>;

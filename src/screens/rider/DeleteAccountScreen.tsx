@@ -72,7 +72,7 @@ const DeleteAccountScreen: React.FC<DeleteAccountScreenProps> = ({ navigation })
           <View style={styles.warningSection}>
             <Text style={styles.warningTitle}>Delete Account</Text>
             <Text style={styles.warningText}>
-              Deleting your account will permanently remove your profile, ride history, saved places, payment
+              Deleting your account will permanently remove your profile, ride history, payment
               methods, and preferences. This action cannot be undone.
             </Text>
           </View>

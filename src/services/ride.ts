@@ -214,6 +214,33 @@ class RideService {
     }
   }
 
+  // Get user's ride statistics
+  async getRideStatistics(): Promise<{ completedTrips: number; totalSpent: number }> {
+    try {
+      const rides = await this.getRideHistory();
+      
+      // Filter only completed rides
+      const completedRides = rides.filter(ride => ride.status === 'COMPLETED');
+      
+      // Calculate total spent from actual or estimated fare
+      const totalSpent = completedRides.reduce((sum, ride) => {
+        const fare = ride.actualFare || ride.estimatedFare || 0;
+        return sum + fare;
+      }, 0);
+      
+      return {
+        completedTrips: completedRides.length,
+        totalSpent: totalSpent
+      };
+    } catch (error) {
+      console.error('Error fetching ride statistics:', error);
+      return {
+        completedTrips: 0,
+        totalSpent: 0
+      };
+    }
+  }
+
   // Log payment for completed ride
   async logPayment(paymentData: PaymentLog): Promise<void> {
     try {

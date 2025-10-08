@@ -18,9 +18,7 @@ import RideTrackingScreen from '../screens/rider/RideTrackingScreen';
 import RideReceiptScreen from '../screens/rider/RideReceiptScreen';
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
 import RideHistoryScreen from '../screens/rider/RideHistoryScreen';
-import SavedPlacesScreen from '../screens/rider/SavedPlacesScreen';
 import PaymentMethodsScreen from '../screens/rider/PaymentMethodsScreen';
-import SupportScreen from '../screens/rider/SupportScreen';
 import PromotionsScreen from '../screens/rider/PromotionsScreen';
 import EditProfileScreen from '../screens/rider/EditProfileScreen';
 import DeleteAccountScreen from '../screens/rider/DeleteAccountScreen';
@@ -93,18 +91,8 @@ const AppNavigator: React.FC = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen 
-                name="SavedPlaces" 
-                component={SavedPlacesScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
                 name="PaymentMethods" 
                 component={PaymentMethodsScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="Support" 
-                component={SupportScreen}
                 options={{ headerShown: false }}
               />
               <Stack.Screen 

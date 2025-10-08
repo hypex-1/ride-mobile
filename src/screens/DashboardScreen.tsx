@@ -54,12 +54,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         label: 'Edit profile',
         onPress: () => (navigation as any).navigate('EditProfile'),
       },
-      {
-        key: 'delete-account',
-        icon: 'account-remove',
-        label: 'Delete account',
-        onPress: () => (navigation as any).navigate('DeleteAccount'),
-      },
     ],
     [navigation],
   );
