@@ -2,9 +2,9 @@ import React from 'react';
 import { View, StyleSheet, Alert, ScrollView, StatusBar } from 'react-native';
 import { Surface, Button, Avatar, Text, IconButton, TouchableRipple, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../contexts/AuthContext';
-import { DashboardScreenProps } from '../types/navigation';
-import { spacing, radii } from '../theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { DashboardScreenProps } from '../../types/navigation';
+import { spacing, radii } from '../../theme';
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -87,11 +87,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* Profile Section - Bolt Style */}
         <Surface elevation={1} style={styles.profileSection}>
           <View style={styles.profileRow}>
-            <Avatar.Text
-              size={56}
-              label={user.name ? user.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase() : user.email.charAt(0).toUpperCase()}
-              style={styles.avatar}
-            />
+            {user?.profilePicture ? (
+              <Avatar.Image
+                size={56}
+                source={{ uri: user.profilePicture }}
+                style={styles.avatar}
+              />
+            ) : (
+              <Avatar.Text
+                size={56}
+                label={user.name ? user.name.split(' ').map((n: string) => n.charAt(0)).join('').substring(0, 2).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                style={styles.avatar}
+              />
+            )}
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>
                 {user.name || 'User'}

@@ -5,16 +5,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { SocketProvider } from '../contexts/SocketContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { RootStackParamList } from '../types/navigation';
-import { navigationTheme, useAppTheme } from '../theme';
+import { useAppTheme, navigationTheme } from '../theme';
 import type { AppTheme } from '../theme';
 
 // Import screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
-import RequestRideScreen from '../screens/RequestRideScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import DashboardScreen from '../screens/DashboardScreen';
+import ProfileScreen from '../screens/rider/ProfileScreen';
+import DashboardScreen from '../screens/rider/DashboardScreen';
 import HomeScreen from '../screens/rider/HomeScreen';
 import RideTrackingScreen from '../screens/rider/RideTrackingScreen';
 import RideReceiptScreen from '../screens/rider/RideReceiptScreen';
@@ -24,6 +22,8 @@ import SavedPlacesScreen from '../screens/rider/SavedPlacesScreen';
 import PaymentMethodsScreen from '../screens/rider/PaymentMethodsScreen';
 import SupportScreen from '../screens/rider/SupportScreen';
 import PromotionsScreen from '../screens/rider/PromotionsScreen';
+import EditProfileScreen from '../screens/rider/EditProfileScreen';
+import DeleteAccountScreen from '../screens/rider/DeleteAccountScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,14 +44,20 @@ const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer theme={navigationTheme}>
       <SocketProvider>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.background },
+            animation: 'fade',
+          }}
+        >
           {user ? (
             // User is authenticated - show app screens
             <>
               {user.role === 'RIDER' ? (
                 <Stack.Screen 
-                  name="RequestRide" 
-                  component={RequestRideScreen}
+                  name="Home" 
+                  component={HomeScreen}
                   options={{ headerShown: false }}
                 />
               ) : (
@@ -62,11 +68,6 @@ const AppNavigator: React.FC = () => {
                 />
               )}
               <Stack.Screen 
-                name="Settings" 
-                component={SettingsScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
                 name="Profile" 
                 component={ProfileScreen}
                 options={{ headerShown: false }}
@@ -74,11 +75,6 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="Dashboard" 
                 component={DashboardScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="Home" 
-                component={HomeScreen}
                 options={{ headerShown: false }}
               />
               <Stack.Screen 
@@ -114,6 +110,16 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="Promotions" 
                 component={PromotionsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="EditProfile" 
+                component={EditProfileScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DeleteAccount" 
+                component={DeleteAccountScreen}
                 options={{ headerShown: false }}
               />
             </>

@@ -4,10 +4,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  SafeAreaView,
   Dimensions,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   TextInput,
   Button,
@@ -95,7 +95,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -272,8 +272,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
           loading={isLoading}
           disabled={isLoading}
           style={styles.continueButton}
-          labelStyle={styles.continueButtonLabel}
           contentStyle={styles.continueButtonContent}
+          buttonColor={theme.colors.primary}
+          textColor={theme.colors.onPrimary}
+          labelStyle={styles.continueButtonLabel}
         >
           Create {formData.role === 'rider' ? 'Rider' : 'Driver'} Account
         </Button>
@@ -382,13 +384,11 @@ const createStyles = (theme: AppTheme) =>
       marginLeft: spacing(2),
     },
     continueButton: {
-      backgroundColor: theme.colors.primary,
       borderRadius: radii.md,
       marginTop: spacing(2),
       marginBottom: spacing(3),
     },
     continueButtonLabel: {
-      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
     },

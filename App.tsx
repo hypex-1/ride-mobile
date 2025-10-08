@@ -1,11 +1,11 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { paperTheme } from './src/theme';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { PaymentProvider } from './src/contexts/PaymentContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import { paperTheme } from './src/theme';
 
 export default function App() {
   return (
@@ -14,7 +14,7 @@ export default function App() {
         <NotificationProvider>
           <PaymentProvider>
             <AppNavigator />
-            <StatusBar style="auto" />
+            <StatusBar style="dark" />
           </PaymentProvider>
         </NotificationProvider>
       </AuthProvider>

@@ -1,10 +1,118 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 
-// API Configuration
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
-const WS_URL = process.env.EXPO_PUBLIC_WS_URL || 'ws://localhost:3000';
+// API Configuration Helpers
+type ExpoExtra = Record<string, any> | undefined;
+
+const normalizeUrl = (value?: string | null): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return trimmed.replace(/\/$/, '');
+};
+
+const extractHostFromUri = (uri?: string | null): string | undefined => {
+  if (!uri) {
+    return undefined;
+  }
+
+  const normalized = uri.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  const withoutProtocol = normalized.replace(/^https?:\/\//i, '').replace(/^wss?:\/\//i, '');
+  const hostSegment = withoutProtocol.split('/')[0];
+  if (!hostSegment) {
+    return undefined;
+  }
+
+  const [host] = hostSegment.split(':');
+  return host || undefined;
+};
+
+const resolveBaseHost = (): { host?: string; port?: string | number } => {
+  const expoConfig = Constants.expoConfig as Record<string, any> | undefined;
+  const expoExtra: ExpoExtra = expoConfig?.extra;
+  const expoGoConfig = (Constants as any).expoGoConfig as { hostUri?: string; debuggerHost?: string } | undefined;
+
+  const explicitHost =
+    (expoExtra?.apiHost as string | undefined) ||
+    (a => (typeof a === 'string' ? a : undefined))(process.env.EXPO_PUBLIC_API_HOST);
+
+  const explicitPort =
+    (expoExtra && typeof expoExtra.apiPort !== 'undefined' ? expoExtra.apiPort : undefined) ||
+    process.env.EXPO_PUBLIC_API_PORT ||
+    process.env.API_PORT;
+
+  const hostCandidates = [
+    explicitHost,
+    extractHostFromUri(expoExtra?.apiUrl as string | undefined),
+    extractHostFromUri(expoConfig?.hostUri),
+    extractHostFromUri(expoGoConfig?.hostUri),
+    extractHostFromUri(expoGoConfig?.debuggerHost),
+    extractHostFromUri((Constants as any).manifest?.hostUri),
+    extractHostFromUri((Constants as any).manifest?.debuggerHost),
+  ].filter(Boolean) as string[];
+
+  return {
+    host: hostCandidates[0],
+    port: explicitPort,
+  };
+};
+
+const resolveBaseUrl = (): string => {
+  const envUrl = normalizeUrl(process.env.EXPO_PUBLIC_API_URL || process.env.API_URL || process.env.API_BASE_URL);
+  if (envUrl) {
+    return envUrl;
+  }
+
+  const expoConfig = Constants.expoConfig as Record<string, any> | undefined;
+  const expoExtra: ExpoExtra = expoConfig?.extra;
+  const extraUrl = normalizeUrl((expoExtra?.apiUrl as string | undefined) || (expoExtra?.baseUrl as string | undefined));
+  if (extraUrl) {
+    return extraUrl;
+  }
+
+  const { host, port } = resolveBaseHost();
+  if (host) {
+    const normalizedPort = port ?? 3000;
+    return `http://${host}:${normalizedPort}`;
+  }
+
+  return 'http://localhost:3000';
+};
+
+const resolveWsUrl = (httpUrl: string): string => {
+  const envWsUrl = normalizeUrl(process.env.EXPO_PUBLIC_WS_URL || process.env.WS_URL);
+  if (envWsUrl) {
+    return envWsUrl;
+  }
+
+  try {
+    const url = new URL(httpUrl);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
+  } catch {
+    return 'ws://localhost:3000';
+  }
+};
+
+const API_BASE_URL = resolveBaseUrl();
+const WS_URL = resolveWsUrl(API_BASE_URL);
+
+if (__DEV__) {
+  console.info('[api] Using base URL:', API_BASE_URL);
+  console.info('[api] Using websocket URL:', WS_URL);
+}
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -144,18 +252,18 @@ class ApiService {
     return response.data;
   }
 
-  public async post<T>(endpoint: string, data?: any): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.post(endpoint, data);
+  public async post<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.post(endpoint, data, config);
     return response.data;
   }
 
-  public async put<T>(endpoint: string, data?: any): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.put(endpoint, data);
+  public async put<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.put(endpoint, data, config);
     return response.data;
   }
 
-  public async patch<T>(endpoint: string, data?: any): Promise<T> {
-    const response: AxiosResponse<T> = await this.axiosInstance.patch(endpoint, data);
+  public async patch<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response: AxiosResponse<T> = await this.axiosInstance.patch(endpoint, data, config);
     return response.data;
   }
 

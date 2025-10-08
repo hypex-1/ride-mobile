@@ -1,10 +1,37 @@
-import { MD3LightTheme, useTheme } from 'react-native-paper';
-import { DefaultTheme as NavigationDefaultTheme, Theme as NavigationTheme } from '@react-navigation/native';
+import { MD3DarkTheme, MD3LightTheme, useTheme } from 'react-native-paper';
+import {
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+  Theme as NavigationTheme,
+} from '@react-navigation/native';
 import type { MD3Theme } from 'react-native-paper';
 
-const palette = {
-  // Bolt's exact color scheme
-  primary: '#34D186', // Bolt green
+type Palette = {
+  primary: string;
+  primaryMuted: string;
+  primaryDark: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  surfaceVariant: string;
+  outline: string;
+  outlineDark: string;
+  success: string;
+  warning: string;
+  danger: string;
+  info: string;
+  muted: string;
+  textPrimary: string;
+  textSecondary: string;
+  textLight: string;
+  mapGreen: string;
+  rideGreen: string;
+  shadowColor: string;
+};
+
+const lightPalette: Palette = {
+  // Bolt's exact light color scheme
+  primary: '#34D186',
   primaryMuted: '#6EE5A7',
   primaryDark: '#2CAB73',
   secondary: '#1A1A1A',
@@ -26,18 +53,40 @@ const palette = {
   shadowColor: '#000000',
 } as const;
 
-const basePaperTheme = MD3LightTheme as MD3Theme;
+const darkPalette: Palette = {
+  primary: '#34D186',
+  primaryMuted: '#2CAB73',
+  primaryDark: '#19985F',
+  secondary: '#F9FAFB',
+  background: '#0F172A',
+  surface: '#111827',
+  surfaceVariant: '#1F2937',
+  outline: '#2D3648',
+  outlineDark: '#374151',
+  success: '#34D186',
+  warning: '#F59E0B',
+  danger: '#F87171',
+  info: '#60A5FA',
+  muted: '#9CA3AF',
+  textPrimary: '#F9FAFB',
+  textSecondary: '#CBD5F5',
+  textLight: '#E5E7EB',
+  mapGreen: '#22C55E',
+  rideGreen: '#22C55E',
+  shadowColor: '#000000',
+} as const;
 
-export const paperTheme: MD3Theme = {
-  ...basePaperTheme,
-  roundness: 12, // Bolt's slightly rounded corners
+const buildPaperTheme = (base: MD3Theme, palette: typeof lightPalette, isDark: boolean): MD3Theme => ({
+  ...base,
+  dark: isDark,
+  roundness: 12,
   colors: {
-    ...basePaperTheme.colors,
+    ...base.colors,
     primary: palette.primary,
     primaryContainer: palette.primaryMuted,
     onPrimary: '#FFFFFF',
     secondary: palette.secondary,
-    onSecondary: '#FFFFFF',
+    onSecondary: isDark ? '#111827' : '#FFFFFF',
     tertiary: palette.success,
     onTertiary: '#FFFFFF',
     background: palette.background,
@@ -50,22 +99,35 @@ export const paperTheme: MD3Theme = {
     onSurface: palette.textPrimary,
     onSurfaceVariant: palette.textSecondary,
   },
+});
+
+export const lightPaperTheme = buildPaperTheme(MD3LightTheme as MD3Theme, lightPalette, false);
+export const darkPaperTheme = buildPaperTheme(MD3DarkTheme as MD3Theme, darkPalette, true);
+
+export type AppTheme = typeof lightPaperTheme;
+
+export const buildNavigationTheme = (
+  mode: 'light' | 'dark',
+  paperTheme: MD3Theme,
+): NavigationTheme => {
+  const base = mode === 'dark' ? NavigationDarkTheme : NavigationDefaultTheme;
+  return {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: paperTheme.colors.primary,
+      background: paperTheme.colors.background,
+      card: paperTheme.colors.surface,
+      text: paperTheme.colors.onSurface,
+      border: paperTheme.colors.outline,
+      notification: paperTheme.colors.primary,
+    },
+  };
 };
 
-export type AppTheme = typeof paperTheme;
-
-export const navigationTheme: NavigationTheme = {
-  ...NavigationDefaultTheme,
-  colors: {
-    ...NavigationDefaultTheme.colors,
-    primary: paperTheme.colors.primary,
-    background: paperTheme.colors.background,
-    card: paperTheme.colors.surface,
-    text: paperTheme.colors.onSurface,
-    border: paperTheme.colors.outline,
-    notification: paperTheme.colors.primary,
-  },
-};
+// Backwards compatible defaults (light theme)
+export const paperTheme = lightPaperTheme;
+export const navigationTheme = buildNavigationTheme('light', lightPaperTheme);
 
 export const spacing = (factor = 1) => factor * 8;
 
@@ -87,7 +149,7 @@ export const elevation = {
 export const useAppTheme = () => useTheme<AppTheme>();
 
 export const themeTokens = {
-  palette,
+  palette: lightPalette,
   spacing,
   radii,
   elevation,

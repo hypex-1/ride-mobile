@@ -3,10 +3,10 @@ import {
   View,
   StyleSheet,
   Alert,
-  SafeAreaView,
   Dimensions,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   TextInput,
   Button,
@@ -69,7 +69,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
       
       {/* Header */}
       <View style={styles.header}>
@@ -174,12 +174,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onPress={handleLogin}
           loading={isLoading}
           disabled={isLoading || !credentials.email || !credentials.password}
-          style={[
-            styles.continueButton,
-            (!credentials.email || !credentials.password) && styles.continueButtonDisabled
-          ]}
-          labelStyle={styles.continueButtonLabel}
+          style={styles.continueButton}
           contentStyle={styles.continueButtonContent}
+          buttonColor={(!credentials.email || !credentials.password) ? theme.colors.surfaceVariant : theme.colors.primary}
+          textColor={(!credentials.email || !credentials.password) ? theme.colors.onSurfaceVariant : theme.colors.onPrimary}
+          labelStyle={styles.continueButtonLabel}
         >
           Continue
         </Button>
@@ -293,15 +292,10 @@ const createStyles = (theme: AppTheme) =>
       paddingBottom: spacing(4),
     },
     continueButton: {
-      backgroundColor: theme.colors.primary,
       borderRadius: radii.md,
       marginBottom: spacing(3),
     },
-    continueButtonDisabled: {
-      backgroundColor: theme.colors.outline,
-    },
     continueButtonLabel: {
-      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
     },

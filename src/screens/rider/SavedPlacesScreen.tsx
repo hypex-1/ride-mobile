@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Surface, Text, Button, IconButton, Divider } from 'react-native-paper';
 import { useAppTheme, spacing, radii } from '../../theme';
 import type { AppTheme } from '../../theme';

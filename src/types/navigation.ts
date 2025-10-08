@@ -3,12 +3,12 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  RequestRide: undefined;
-  Settings: undefined;
   Profile: undefined;
   Dashboard: undefined;
   Home: undefined;
   DriverHome: undefined;
+  EditProfile: undefined;
+  DeleteAccount: undefined;
   RideTracking: {
     rideId: string;
     pickupLocation: {
@@ -43,8 +43,6 @@ export type RootStackParamList = {
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
 export type RegisterScreenProps = NativeStackScreenProps<RootStackParamList, 'Register'>;
-export type RequestRideScreenProps = NativeStackScreenProps<RootStackParamList, 'RequestRide'>;
-export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export type DashboardScreenProps = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
@@ -55,3 +53,5 @@ export type SavedPlacesScreenProps = NativeStackScreenProps<RootStackParamList, 
 export type PaymentMethodsScreenProps = NativeStackScreenProps<RootStackParamList, 'PaymentMethods'>;
 export type SupportScreenProps = NativeStackScreenProps<RootStackParamList, 'Support'>;
 export type PromotionsScreenProps = NativeStackScreenProps<RootStackParamList, 'Promotions'>;
+export type EditProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
+export type DeleteAccountScreenProps = NativeStackScreenProps<RootStackParamList, 'DeleteAccount'>;

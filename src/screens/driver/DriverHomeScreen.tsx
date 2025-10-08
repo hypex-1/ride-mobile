@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Dimensions, AppState, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Alert, Dimensions, AppState, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Surface, 
   Card, 
@@ -320,7 +321,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   if (!locationPermission) {
     return (
       <View style={styles.centerContainer}>
-  <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Requesting location permissions...</Text>
       </View>
     );
@@ -328,10 +329,12 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
       {/* Header with navigation and profile */}
       <Surface elevation={0} style={styles.header}>
         <IconButton
           icon="arrow-left"
+          iconColor={theme.colors.onSurface}
           size={24}
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -346,8 +349,9 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
         </View>
         <IconButton
           icon="account-circle"
+          iconColor={theme.colors.onSurface}
           size={24}
-          onPress={() => navigation.navigate('Settings')}
+          onPress={() => navigation.navigate('EditProfile')}
           style={styles.profileButton}
         />
       </Surface>
@@ -359,6 +363,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
         region={region}
         showsUserLocation={true}
         showsMyLocationButton={false}
+        mapType="standard"
       >
         {currentLocation && (
           <Marker
@@ -368,7 +373,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
             }}
             title="Your Location"
             description="Driver position"
-            pinColor={isAvailable ? theme.colors.tertiary : theme.colors.error}
+            pinColor={isAvailable ? theme.colors.primary : theme.colors.error}
           />
         )}
       </MapView>
@@ -389,7 +394,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
               <Switch
                 value={isAvailable}
                 onValueChange={toggleAvailability}
-                color={theme.colors.tertiary}
+                color={theme.colors.primary}
               />
             </View>
           </Card.Content>
@@ -462,6 +467,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
                   onPress={() => declineRide(activeRideRequest.id)}
                   style={styles.declineButton}
                   disabled={acceptingRide}
+                  textColor={theme.colors.error}
                 >
                   Decline
                 </Button>
@@ -471,6 +477,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
                   style={styles.acceptButton}
                   loading={acceptingRide}
                   disabled={acceptingRide}
+                  buttonColor={theme.colors.primary}
                 >
                   Accept Ride
                 </Button>
@@ -635,6 +642,7 @@ const createStyles = (theme: AppTheme) =>
       flex: 1,
       marginRight: spacing(1),
       borderRadius: radii.md,
+      borderColor: theme.colors.error,
     },
     acceptButton: {
       flex: 1,

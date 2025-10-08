@@ -1,5 +1,16 @@
 import * as Location from 'expo-location';
 
+const RAW_GOOGLE_MAPS_API_KEY = (
+  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
+  process.env.GOOGLE_MAPS_API_KEY ||
+  ''
+).trim();
+
+const GOOGLE_GEOCODING_API_KEY =
+  RAW_GOOGLE_MAPS_API_KEY && RAW_GOOGLE_MAPS_API_KEY !== 'your_google_maps_key_here'
+    ? RAW_GOOGLE_MAPS_API_KEY
+    : '';
+
 export interface LocationCoords {
   latitude: number;
   longitude: number;
@@ -14,6 +25,19 @@ export interface LocationAddress {
   country?: string;
   postalCode?: string;
 }
+
+const TUNISIA_BOUNDS = {
+  minLatitude: 30.0,
+  maxLatitude: 37.5,
+  minLongitude: 7.0,
+  maxLongitude: 12.0,
+};
+
+const isWithinTunisia = (latitude: number, longitude: number): boolean =>
+  latitude >= TUNISIA_BOUNDS.minLatitude &&
+  latitude <= TUNISIA_BOUNDS.maxLatitude &&
+  longitude >= TUNISIA_BOUNDS.minLongitude &&
+  longitude <= TUNISIA_BOUNDS.maxLongitude;
 
 class LocationService {
   private hasPermission = false;
@@ -95,39 +119,65 @@ class LocationService {
 
   // Reverse geocoding - convert coordinates to address
   async reverseGeocode(latitude: number, longitude: number): Promise<LocationAddress | null> {
+    const fallbackAddress = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
     try {
       const results = await Location.reverseGeocodeAsync({
         latitude,
         longitude,
       });
 
+      const baseRecord: LocationAddress = {
+        latitude,
+        longitude,
+        address: fallbackAddress,
+      };
+
       if (results && results.length > 0) {
         const result = results[0];
-        const addressParts = [
-          result.streetNumber,
-          result.street,
-          result.city,
-          result.region,
-        ].filter(Boolean);
 
-        return {
-          latitude,
-          longitude,
-          address: addressParts.join(', '),
-          city: result.city || undefined,
-          region: result.region || undefined,
-          country: result.country || undefined,
-          postalCode: result.postalCode || undefined,
-        };
+        const expoAddress = this.buildExpoAddressLine(result);
+
+        baseRecord.city = result.city || result.subregion || result.district || baseRecord.city;
+        baseRecord.region = result.region || result.subregion || baseRecord.region;
+        baseRecord.country = result.country || baseRecord.country;
+        baseRecord.postalCode = result.postalCode || baseRecord.postalCode;
+
+        const googleAddress = await this.reverseGeocodeWithGoogle(latitude, longitude, {
+          ...baseRecord,
+          address: expoAddress || baseRecord.address,
+        });
+
+        if (googleAddress) {
+          return googleAddress;
+        }
+
+        if (expoAddress) {
+          return {
+            ...baseRecord,
+            address: expoAddress,
+          };
+        }
+
+        return baseRecord;
       }
 
-      return null;
+      const googleAddress = await this.reverseGeocodeWithGoogle(latitude, longitude);
+      if (googleAddress) {
+        return googleAddress;
+      }
+
+      return baseRecord;
     } catch (error) {
       console.error('Error reverse geocoding:', error);
+      const googleAddress = await this.reverseGeocodeWithGoogle(latitude, longitude);
+      if (googleAddress) {
+        return googleAddress;
+      }
       return {
         latitude,
         longitude,
-        address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+        address: fallbackAddress,
       };
     }
   }
@@ -140,11 +190,19 @@ class LocationService {
       const locations: LocationAddress[] = [];
       
       for (const result of results) {
+        if (!isWithinTunisia(result.latitude, result.longitude)) {
+          continue;
+        }
+
         // Try to get detailed address info
         const detailedAddress = await this.reverseGeocode(
           result.latitude,
           result.longitude
         );
+
+        if (detailedAddress?.country && detailedAddress.country !== 'Tunisia') {
+          continue;
+        }
         
         locations.push({
           latitude: result.latitude,
@@ -157,7 +215,9 @@ class LocationService {
         });
       }
       
-      return locations;
+      return locations.filter((location) =>
+        isWithinTunisia(location.latitude, location.longitude)
+      );
     } catch (error) {
       console.error('Error geocoding address:', error);
       return [];
@@ -196,12 +256,210 @@ class LocationService {
   }
 
   // Helper methods
+  private buildExpoAddressLine(result: Location.LocationGeocodedAddress): string {
+    const parts: string[] = [];
+
+    if (!this.isGenericName(result.name, result)) {
+      this.pushIfUnique(parts, result.name);
+    }
+
+    const streetLine = [result.streetNumber, result.street]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    this.pushIfUnique(parts, streetLine);
+
+    this.pushIfUnique(parts, result.district);
+    this.pushIfUnique(parts, result.subregion);
+    this.pushIfUnique(parts, result.city);
+
+    if (result.region && result.region !== result.city) {
+      this.pushIfUnique(parts, result.region);
+    }
+
+    return parts.join(', ');
+  }
+
+  private isGenericName(
+    name: string | null | undefined,
+    result: Location.LocationGeocodedAddress,
+  ): boolean {
+    if (!name) {
+      return true;
+    }
+
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return true;
+    }
+
+    const lower = trimmed.toLowerCase();
+    if (lower === 'unnamed road') {
+      return true;
+    }
+
+    const genericTokens = ['governorate', 'gouvernorat', 'tunisia'];
+    if (genericTokens.some((token) => lower.includes(token))) {
+      return true;
+    }
+
+    const comparable = [
+      result.city,
+      result.region,
+      result.subregion,
+      result.district,
+      result.country,
+    ]
+      .filter(Boolean)
+      .map((value) => value?.trim().toLowerCase()) as string[];
+
+    return comparable.includes(lower);
+  }
+
+  private pushIfUnique(parts: string[], value?: string | null) {
+    if (!value) {
+      return;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    if (parts.some((part) => part.toLowerCase() === trimmed.toLowerCase())) {
+      return;
+    }
+
+    parts.push(trimmed);
+  }
+
+  private extractComponent(
+    components: Array<{ long_name: string; types: string[] }> | undefined,
+    wantedTypes: string[],
+  ): string | undefined {
+    if (!components?.length) {
+      return undefined;
+    }
+
+    const match = components.find((component) =>
+      component.types?.some((type) => wantedTypes.includes(type)),
+    );
+
+    return match?.long_name;
+  }
+
   private degreesToRadians(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 
   private radiansToDegrees(radians: number): number {
     return radians * (180 / Math.PI);
+  }
+
+  private async reverseGeocodeWithGoogle(
+    latitude: number,
+    longitude: number,
+    fallback?: Partial<LocationAddress>,
+  ): Promise<LocationAddress | null> {
+    if (!GOOGLE_GEOCODING_API_KEY) {
+      return null;
+    }
+
+    try {
+      const params = new URLSearchParams({
+        latlng: `${latitude},${longitude}`,
+        key: GOOGLE_GEOCODING_API_KEY,
+        language: 'en',
+      });
+
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error(`Google Geocoding request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.status === 'OK' && data.results?.length) {
+        const prioritizedTypes = [
+          'street_address',
+          'premise',
+          'point_of_interest',
+          'establishment',
+          'natural_feature',
+          'route',
+        ];
+
+        const bestResult =
+          data.results.find((result: any) =>
+            result.types?.some((type: string) => prioritizedTypes.includes(type)),
+          ) ?? data.results[0];
+
+        if (!bestResult) {
+          return null;
+        }
+
+        const components = bestResult.address_components ?? [];
+
+        const placeName = this.extractComponent(components, [
+          'point_of_interest',
+          'establishment',
+          'premise',
+          'natural_feature',
+          'transit_station',
+        ]);
+        const streetNumber = this.extractComponent(components, ['street_number']);
+        const route = this.extractComponent(components, ['route']);
+        const neighborhood = this.extractComponent(components, [
+          'neighborhood',
+          'sublocality',
+          'sublocality_level_1',
+          'administrative_area_level_3',
+        ]);
+        const city =
+          this.extractComponent(components, ['locality', 'administrative_area_level_2']) ||
+          fallback?.city;
+        const region =
+          this.extractComponent(components, ['administrative_area_level_1']) ||
+          fallback?.region;
+        const country = this.extractComponent(components, ['country']) || fallback?.country;
+        const postalCode =
+          this.extractComponent(components, ['postal_code']) || fallback?.postalCode;
+
+        const addressParts: string[] = [];
+        this.pushIfUnique(addressParts, placeName);
+
+        const streetLine = [streetNumber, route].filter(Boolean).join(' ').trim();
+        this.pushIfUnique(addressParts, streetLine);
+        this.pushIfUnique(addressParts, neighborhood);
+        this.pushIfUnique(addressParts, city);
+        if (region && region !== city) {
+          this.pushIfUnique(addressParts, region);
+        }
+
+        const address =
+          addressParts.filter(Boolean).join(', ') ||
+          bestResult.formatted_address ||
+          fallback?.address ||
+          `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+        return {
+          latitude,
+          longitude,
+          address,
+          city,
+          region,
+          country,
+          postalCode,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error reverse geocoding with Google:', error);
+      return null;
+    }
   }
 
   // Check if location services are enabled

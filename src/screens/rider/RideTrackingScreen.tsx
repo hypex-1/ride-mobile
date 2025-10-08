@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Alert, Dimensions, SafeAreaView, Linking, StatusBar } from 'react-native';
+import { View, StyleSheet, Alert, Dimensions, Linking, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Surface,
   Button,
@@ -13,6 +14,7 @@ import { useSocket } from '../../contexts/SocketContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { RideTrackingScreenProps } from '../../types/navigation';
 import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 const { width } = Dimensions.get('window');
 
@@ -142,7 +144,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
       
       {/* Map */}
       <MapView
@@ -155,19 +157,20 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
+  mapType="standard"
       >
         {/* Pickup marker */}
         <Marker
           coordinate={pickupLocation}
           title="Pickup"
-          pinColor="#34D186"
+          pinColor={theme.colors.primary}
         />
         
         {/* Dropoff marker */}
         <Marker
           coordinate={dropoffLocation}
           title="Destination"
-          pinColor="#FF4444"
+          pinColor={theme.colors.error}
         />
         
         {/* Driver marker */}
@@ -187,7 +190,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
         {driverLocation && (
           <Polyline
             coordinates={[driverLocation, pickupLocation, dropoffLocation]}
-            strokeColor="#34D186"
+            strokeColor={theme.colors.primary}
             strokeWidth={3}
           />
         )}
@@ -198,7 +201,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
         <View style={styles.headerContent}>
           <IconButton
             icon="arrow-left"
-            iconColor="#000000"
+            iconColor={theme.colors.onSurface}
             size={24}
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -213,7 +216,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
           </View>
           <IconButton
             icon="phone"
-            iconColor="#34D186"
+            iconColor={theme.colors.primary}
             size={24}
             onPress={handleCallDriver}
             style={styles.callButton}
@@ -283,7 +286,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
                 mode="outlined"
                 onPress={handleCancelRide}
                 style={styles.cancelButton}
-                textColor="#FF4444"
+                textColor={theme.colors.error}
               >
                 Cancel ride
               </Button>
@@ -291,7 +294,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
                 mode="contained"
                 onPress={handleCallDriver}
                 style={styles.callButtonMain}
-                buttonColor="#34D186"
+                buttonColor={theme.colors.primary}
               >
                 Call driver
               </Button>
@@ -314,11 +317,11 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#F8F9FA',
+      backgroundColor: theme.colors.surfaceVariant,
     },
     
     // Map
@@ -329,12 +332,13 @@ const createStyles = (theme: any) =>
       width: 30,
       height: 30,
       borderRadius: 15,
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
     },
     driverMarkerText: {
       fontSize: 16,
+      color: theme.colors.onPrimary,
     },
 
     // Header - Bolt Style
@@ -350,9 +354,9 @@ const createStyles = (theme: any) =>
       alignItems: 'center',
       paddingHorizontal: spacing(2),
       paddingVertical: spacing(1),
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: '#E5E7EB',
+      borderBottomColor: theme.colors.outline,
     },
     backButton: {
       margin: 0,
@@ -364,16 +368,16 @@ const createStyles = (theme: any) =>
     headerTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
     },
     headerSubtitle: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       marginTop: spacing(0.5),
     },
     callButton: {
       margin: 0,
-      backgroundColor: 'rgba(52, 209, 134, 0.1)',
+      backgroundColor: theme.colors.primaryContainer,
     },
 
     // Bottom Panel - Bolt Style
@@ -382,7 +386,7 @@ const createStyles = (theme: any) =>
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       borderTopLeftRadius: radii.xl,
       borderTopRightRadius: radii.xl,
       maxHeight: '60%',
@@ -394,7 +398,7 @@ const createStyles = (theme: any) =>
     handleBar: {
       width: 40,
       height: 4,
-      backgroundColor: '#D1D5DB',
+      backgroundColor: theme.colors.outlineVariant,
       borderRadius: radii.sm,
     },
 
@@ -409,28 +413,28 @@ const createStyles = (theme: any) =>
     collapsedStatus: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(0.5),
     },
     collapsedEta: {
       fontSize: 14,
-      color: '#34D186',
+      color: theme.colors.primary,
       fontWeight: '500',
     },
     collapsedDriver: {
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: '#E5E7EB',
+      borderTopColor: theme.colors.outline,
       paddingTop: spacing(2),
     },
     collapsedDriverName: {
       fontSize: 16,
       fontWeight: '500',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(0.5),
     },
     collapsedVehicle: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
     },
 
     // Expanded State
@@ -446,13 +450,13 @@ const createStyles = (theme: any) =>
       marginBottom: spacing(3),
       paddingBottom: spacing(3),
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: '#E5E7EB',
+      borderBottomColor: theme.colors.outline,
     },
     driverAvatar: {
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
     },
     driverAvatarText: {
-      color: '#FFFFFF',
+      color: theme.colors.onPrimary,
       fontWeight: '600',
     },
     driverInfo: {
@@ -462,12 +466,12 @@ const createStyles = (theme: any) =>
     driverName: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(0.5),
     },
     driverDetails: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       marginBottom: spacing(1),
     },
     ratingContainer: {
@@ -475,7 +479,7 @@ const createStyles = (theme: any) =>
     },
     rating: {
       fontSize: 14,
-      color: '#F59E0B',
+      color: theme.colors.primary,
       fontWeight: '500',
     },
 
@@ -486,12 +490,12 @@ const createStyles = (theme: any) =>
     statusText: {
       fontSize: 20,
       fontWeight: '700',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(1),
     },
     statusSubtitle: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       lineHeight: 20,
     },
 
@@ -511,22 +515,22 @@ const createStyles = (theme: any) =>
       marginRight: spacing(2),
     },
     pickupDot: {
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
     },
     dropoffDot: {
-      backgroundColor: '#FF4444',
+      backgroundColor: theme.colors.error,
     },
     routeLine: {
       width: 2,
       height: 20,
-      backgroundColor: '#D1D5DB',
+      backgroundColor: theme.colors.outlineVariant,
       marginLeft: 5,
       marginVertical: spacing(0.5),
     },
     routeText: {
       flex: 1,
       fontSize: 14,
-      color: '#374151',
+      color: theme.colors.onSurfaceVariant,
     },
 
     // Action Buttons
@@ -536,7 +540,7 @@ const createStyles = (theme: any) =>
     },
     cancelButton: {
       flex: 1,
-      borderColor: '#FF4444',
+      borderColor: theme.colors.error,
     },
     callButtonMain: {
       flex: 1,

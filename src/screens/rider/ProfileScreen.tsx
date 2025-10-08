@@ -2,10 +2,10 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, IconButton, Avatar, Divider, List } from 'react-native-paper';
-import { useAuth } from '../contexts/AuthContext';
-import { ProfileScreenProps } from '../types/navigation';
-import { spacing, radii, useAppTheme } from '../theme';
-import type { AppTheme } from '../theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { ProfileScreenProps } from '../../types/navigation';
+import { spacing, radii, useAppTheme } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -42,6 +42,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Account',
+          style: 'destructive',
+          onPress: () => navigateTo('DeleteAccount'),
+        },
+      ]
+    );
+  };
+
   const navigateTo = (screenName: string) => {
     (navigation as any).navigate(screenName);
   };
@@ -50,7 +65,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (!user?.name) return 'U';
     return user.name
       .split(' ')
-      .map((part) => part[0])
+      .map((part: string) => part[0])
       .join('')
       .slice(0, 2)
       .toUpperCase();
@@ -58,19 +73,27 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
+  <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Profile Header */}
           <View style={styles.profileHeader}>
-            <Avatar.Text
-              size={80}
-              label={profileInitials}
-              style={styles.avatar}
-              color={theme.colors.onPrimary}
-            />
+            {user?.profilePicture ? (
+              <Avatar.Image
+                size={80}
+                source={{ uri: user.profilePicture }}
+                style={styles.avatar}
+              />
+            ) : (
+              <Avatar.Text
+                size={80}
+                label={profileInitials}
+                style={styles.avatar}
+                color={theme.colors.onPrimary}
+              />
+            )}
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
             <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
           </View>
@@ -139,13 +162,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
               onPress={handleLogout}
             />
             <Divider />
-
+            
             <List.Item
-              title="Delete account"
+              title="Delete Account"
               titleStyle={{ color: theme.colors.error }}
               left={(props) => <List.Icon {...props} icon="account-remove" color={theme.colors.error} />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigateTo('DeleteAccount')}
+              onPress={handleDeleteAccount}
             />
           </View>
         </ScrollView>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Share, StatusBar, SafeAreaView } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, Share, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   Text, 
   Button, 
@@ -12,6 +13,7 @@ import { RideReceiptScreenProps } from '../../types/navigation';
 import { usePayment } from '../../contexts/PaymentContext';
 import { PaymentReceipt } from '../../services/payment';
 import { useAppTheme, spacing, radii } from '../../theme';
+import type { AppTheme } from '../../theme';
 
 const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation }) => {
   const { rideId } = route.params;
@@ -136,7 +138,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#34D186" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Loading receipt...</Text>
       </View>
     );
@@ -149,7 +151,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
         <Text style={styles.errorSubtitle}>
           {error || 'Unable to load receipt data'}
         </Text>
-        <Button mode="contained" onPress={goHome} style={styles.button} buttonColor="#34D186">
+        <Button mode="contained" onPress={goHome} style={styles.button} buttonColor={theme.colors.primary}>
           Go Home
         </Button>
       </View>
@@ -158,14 +160,14 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
       
       {/* Header */}
       <SafeAreaView style={styles.header}>
         <View style={styles.headerContent}>
           <IconButton
             icon="arrow-left"
-            iconColor="#000000"
+            iconColor={theme.colors.onSurface}
             size={24}
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -173,7 +175,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
           <Text style={styles.headerTitle}>Trip receipt</Text>
           <IconButton
             icon="share-variant"
-            iconColor="#34D186"
+            iconColor={theme.colors.primary}
             size={24}
             onPress={shareReceipt}
             style={styles.shareButton}
@@ -302,7 +304,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
             mode="contained"
             onPress={goHome}
             style={styles.doneButton}
-            buttonColor="#34D186"
+            buttonColor={theme.colors.primary}
             contentStyle={styles.doneButtonContent}
           >
             Done
@@ -321,11 +323,11 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#F8F9FA',
+      backgroundColor: theme.colors.surfaceVariant,
     },
     
     // Loading/Error States
@@ -334,31 +336,31 @@ const createStyles = (theme: any) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: spacing(3),
-      backgroundColor: '#F8F9FA',
+      backgroundColor: theme.colors.surfaceVariant,
     },
     loadingText: {
       marginTop: spacing(2),
       fontSize: 16,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
     },
     errorTitle: {
       fontSize: 24,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(1),
     },
     errorSubtitle: {
       fontSize: 16,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
       marginBottom: spacing(3),
     },
 
     // Header - Bolt Style
     header: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: '#E5E7EB',
+      borderBottomColor: theme.colors.outline,
     },
     headerContent: {
       flexDirection: 'row',
@@ -373,13 +375,13 @@ const createStyles = (theme: any) =>
       flex: 1,
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       textAlign: 'center',
       marginRight: spacing(6), // Balance the share button
     },
     shareButton: {
       margin: 0,
-      backgroundColor: 'rgba(52, 209, 134, 0.1)',
+      backgroundColor: theme.colors.primaryContainer,
     },
 
     // Scroll View
@@ -397,60 +399,60 @@ const createStyles = (theme: any) =>
       width: 64,
       height: 64,
       borderRadius: 32,
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: spacing(2),
     },
     successIconText: {
       fontSize: 32,
-      color: '#FFFFFF',
+      color: theme.colors.onPrimary,
       fontWeight: 'bold',
     },
     successTitle: {
       fontSize: 24,
       fontWeight: '700',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(1),
     },
     successSubtitle: {
       fontSize: 16,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
     },
 
     // Cards - Bolt Style
     summaryCard: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       marginHorizontal: spacing(3),
       marginBottom: spacing(2),
       padding: spacing(3),
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: '#E5E7EB',
+      borderColor: theme.colors.outline,
     },
     driverCard: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       marginHorizontal: spacing(3),
       marginBottom: spacing(2),
       padding: spacing(3),
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: '#E5E7EB',
+      borderColor: theme.colors.outline,
     },
     paymentCard: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: theme.colors.surface,
       marginHorizontal: spacing(3),
       marginBottom: spacing(2),
       padding: spacing(3),
       borderRadius: radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: '#E5E7EB',
+      borderColor: theme.colors.outline,
     },
     cardTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(2),
     },
 
@@ -470,29 +472,29 @@ const createStyles = (theme: any) =>
       marginRight: spacing(2),
     },
     pickupDot: {
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
     },
     dropoffDot: {
-      backgroundColor: '#FF4444',
+      backgroundColor: theme.colors.error,
     },
     routeLine: {
       width: 2,
       height: 20,
-      backgroundColor: '#D1D5DB',
+      backgroundColor: theme.colors.outlineVariant,
       marginLeft: 5,
       marginVertical: spacing(0.5),
     },
     routeText: {
       flex: 1,
       fontSize: 14,
-      color: '#374151',
+      color: theme.colors.onSurfaceVariant,
       lineHeight: 20,
     },
 
     // Trip Details
     tripDetails: {
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: '#E5E7EB',
+      borderTopColor: theme.colors.outline,
       paddingTop: spacing(2),
     },
     tripDetailItem: {
@@ -503,12 +505,12 @@ const createStyles = (theme: any) =>
     },
     tripDetailLabel: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
     },
     tripDetailValue: {
       fontSize: 14,
       fontWeight: '500',
-      color: '#111827',
+      color: theme.colors.onSurface,
     },
 
     // Driver Info
@@ -520,7 +522,7 @@ const createStyles = (theme: any) =>
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: '#34D186',
+      backgroundColor: theme.colors.primary,
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: spacing(2),
@@ -528,7 +530,7 @@ const createStyles = (theme: any) =>
     driverAvatarText: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#FFFFFF',
+      color: theme.colors.onPrimary,
     },
     driverDetails: {
       flex: 1,
@@ -536,17 +538,17 @@ const createStyles = (theme: any) =>
     driverName: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#111827',
+      color: theme.colors.onSurface,
       marginBottom: spacing(0.5),
     },
     driverVehicle: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
       marginBottom: spacing(0.5),
     },
     driverRating: {
       fontSize: 14,
-      color: '#F59E0B',
+      color: theme.colors.primary,
       fontWeight: '500',
     },
 
@@ -562,19 +564,19 @@ const createStyles = (theme: any) =>
     },
     fareLabel: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
     },
     fareValue: {
       fontSize: 14,
       fontWeight: '500',
-      color: '#111827',
+      color: theme.colors.onSurface,
     },
     discountText: {
-      color: '#EF4444',
+      color: theme.colors.error,
     },
     totalSection: {
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: '#E5E7EB',
+      borderTopColor: theme.colors.outline,
       paddingTop: spacing(2),
     },
     totalItem: {
@@ -586,16 +588,16 @@ const createStyles = (theme: any) =>
     totalLabel: {
       fontSize: 18,
       fontWeight: '700',
-      color: '#111827',
+      color: theme.colors.onSurface,
     },
     totalValue: {
       fontSize: 18,
       fontWeight: '700',
-      color: '#111827',
+      color: theme.colors.onSurface,
     },
     paymentMethod: {
       fontSize: 14,
-      color: '#6B7280',
+      color: theme.colors.onSurfaceVariant,
     },
 
     // Action Section

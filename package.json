@@ -19,6 +19,9 @@
     "test:ci": "jest --coverage --watchAll=false --testPathIgnorePatterns=integration",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
+    "update-ip": "node scripts/update-ip.js",
+    "dev": "npm run update-ip && expo start",
+    "dev:tunnel": "npm run update-ip && expo start --tunnel",
     "backend:test": "node testPayments.js"
   },
   "dependencies": {
@@ -29,6 +32,7 @@
     "axios": "^1.12.2",
     "expo": "54.0.12",
     "expo-device": "~8.0.9",
+    "expo-image-picker": "~17.0.8",
     "expo-location": "~19.0.7",
     "expo-notifications": "~0.32.12",
     "expo-secure-store": "~15.0.7",
