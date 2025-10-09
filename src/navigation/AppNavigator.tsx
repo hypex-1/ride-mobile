@@ -17,6 +17,12 @@ import HomeScreen from '../screens/rider/HomeScreen';
 import RideTrackingScreen from '../screens/rider/RideTrackingScreen';
 import RideReceiptScreen from '../screens/rider/RideReceiptScreen';
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
+import DriverProfileScreen from '../screens/driver/DriverProfileScreen';
+import DriverEarningsScreen from '../screens/driver/DriverEarningsScreen';
+import DriverRideHistoryScreen from '../screens/driver/DriverRideHistoryScreen';
+import DriverDocumentsScreen from '../screens/driver/DriverDocumentsScreen';
+import DriverSettingsScreen from '../screens/driver/DriverSettingsScreen';
+import DriverPickupScreen from '../screens/driver/DriverPickupScreen';
 import RideHistoryScreen from '../screens/rider/RideHistoryScreen';
 import PaymentMethodsScreen from '../screens/rider/PaymentMethodsScreen';
 import EditProfileScreen from '../screens/rider/EditProfileScreen';
@@ -96,6 +102,37 @@ const AppNavigator: React.FC = () => {
               <Stack.Screen 
                 name="EditProfile" 
                 component={EditProfileScreen}
+                options={{ headerShown: false }}
+              />
+              {/* Driver-specific screens */}
+              <Stack.Screen 
+                name="DriverProfile" 
+                component={DriverProfileScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DriverEarnings" 
+                component={DriverEarningsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DriverRideHistory" 
+                component={DriverRideHistoryScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DriverDocuments" 
+                component={DriverDocumentsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DriverSettings" 
+                component={DriverSettingsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen 
+                name="DriverPickup" 
+                component={DriverPickupScreen}
                 options={{ headerShown: false }}
               />
             </>

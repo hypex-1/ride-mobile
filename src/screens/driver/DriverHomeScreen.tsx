@@ -24,6 +24,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import { useAppTheme, spacing, radii } from '../../theme';
 import type { AppTheme } from '../../theme';
+import type { DriverHomeScreenProps } from '../../types/navigation';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -32,10 +33,6 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 // Background location task name
 const BACKGROUND_LOCATION_TASK = 'background-location-task';
-
-interface DriverHomeScreenProps {
-  navigation: any;
-}
 
 const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   const { user } = useAuth();
@@ -351,7 +348,7 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
           icon="account-circle"
           iconColor={theme.colors.onSurface}
           size={24}
-          onPress={() => navigation.navigate('EditProfile')}
+          onPress={() => navigation.navigate('DriverProfile')}
           style={styles.profileButton}
         />
       </Surface>

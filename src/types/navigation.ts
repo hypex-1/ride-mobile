@@ -7,6 +7,12 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Home: undefined;
   DriverHome: undefined;
+  DriverProfile: undefined;
+  DriverEarnings: undefined;
+  DriverRideHistory: undefined;
+  DriverDocuments: undefined;
+  DriverSettings: undefined;
+  DriverPickup: { rideId: string };
   EditProfile: undefined;
   RideTracking: {
     rideId: string;
@@ -42,6 +48,13 @@ export type RegisterScreenProps = NativeStackScreenProps<RootStackParamList, 'Re
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 export type DashboardScreenProps = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
+export type DriverHomeScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverHome'>;
+export type DriverProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverProfile'>;
+export type DriverEarningsScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverEarnings'>;
+export type DriverRideHistoryScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverRideHistory'>;
+export type DriverDocumentsScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverDocuments'>;
+export type DriverSettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverSettings'>;
+export type DriverPickupScreenProps = NativeStackScreenProps<RootStackParamList, 'DriverPickup'>;
 export type RideTrackingScreenProps = NativeStackScreenProps<RootStackParamList, 'RideTracking'>;
 export type RideReceiptScreenProps = NativeStackScreenProps<RootStackParamList, 'RideReceipt'>;
 export type RideHistoryScreenProps = NativeStackScreenProps<RootStackParamList, 'RideHistory'>;
