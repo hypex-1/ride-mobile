@@ -19,9 +19,7 @@ import RideReceiptScreen from '../screens/rider/RideReceiptScreen';
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
 import RideHistoryScreen from '../screens/rider/RideHistoryScreen';
 import PaymentMethodsScreen from '../screens/rider/PaymentMethodsScreen';
-import PromotionsScreen from '../screens/rider/PromotionsScreen';
 import EditProfileScreen from '../screens/rider/EditProfileScreen';
-import DeleteAccountScreen from '../screens/rider/DeleteAccountScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -96,18 +94,8 @@ const AppNavigator: React.FC = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen 
-                name="Promotions" 
-                component={PromotionsScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
                 name="EditProfile" 
                 component={EditProfileScreen}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen 
-                name="DeleteAccount" 
-                component={DeleteAccountScreen}
                 options={{ headerShown: false }}
               />
             </>

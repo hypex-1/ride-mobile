@@ -8,7 +8,6 @@ export type RootStackParamList = {
   Home: undefined;
   DriverHome: undefined;
   EditProfile: undefined;
-  DeleteAccount: undefined;
   RideTracking: {
     rideId: string;
     pickupLocation: {
@@ -36,7 +35,6 @@ export type RootStackParamList = {
   };
   RideHistory: undefined;
   PaymentMethods: undefined;
-  Promotions: undefined;
 };
 
 export type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -48,6 +46,4 @@ export type RideTrackingScreenProps = NativeStackScreenProps<RootStackParamList,
 export type RideReceiptScreenProps = NativeStackScreenProps<RootStackParamList, 'RideReceipt'>;
 export type RideHistoryScreenProps = NativeStackScreenProps<RootStackParamList, 'RideHistory'>;
 export type PaymentMethodsScreenProps = NativeStackScreenProps<RootStackParamList, 'PaymentMethods'>;
-export type PromotionsScreenProps = NativeStackScreenProps<RootStackParamList, 'Promotions'>;
 export type EditProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
-export type DeleteAccountScreenProps = NativeStackScreenProps<RootStackParamList, 'DeleteAccount'>;
