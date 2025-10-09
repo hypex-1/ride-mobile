@@ -82,28 +82,24 @@ const DriverProfileScreen: React.FC<DriverProfileScreenProps> = ({ navigation })
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
+        {/* Header - Enhanced Bolt Style */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            iconColor={theme.colors.onSurface}
-            onPress={() => navigation.goBack()}
-          />
+          <View style={styles.headerPlaceholder} />
           <Text variant="titleLarge" style={styles.headerTitle}>
             Driver Profile
           </Text>
-          <View style={styles.headerSpacer} />
+          <View style={styles.headerPlaceholder} />
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Profile Section */}
-          <Surface style={styles.profileCard}>
+          {/* Profile Section - Enhanced Bolt Style */}
+          <Surface style={styles.profileCard} elevation={3}>
             <View style={styles.profileHeader}>
               <Avatar.Text
-                size={80}
+                size={88}
                 label={user?.name?.charAt(0) || 'D'}
                 style={styles.avatar}
+                labelStyle={styles.avatarLabel}
               />
               <View style={styles.profileInfo}>
                 <Text variant="headlineSmall" style={styles.driverName}>
@@ -113,11 +109,13 @@ const DriverProfileScreen: React.FC<DriverProfileScreenProps> = ({ navigation })
                   {user?.email || 'driver@example.com'}
                 </Text>
                 <View style={styles.ratingContainer}>
-                  <Text variant="bodyMedium" style={styles.rating}>
-                    ⭐ {stats?.rating?.toFixed(1) || '5.0'}
-                  </Text>
+                  <View style={styles.ratingBadge}>
+                    <Text variant="bodyMedium" style={styles.rating}>
+                      ⭐ {stats?.rating?.toFixed(1) || '5.0'}
+                    </Text>
+                  </View>
                   <Text variant="bodySmall" style={styles.totalRides}>
-                    {stats?.totalRides || 0} rides
+                    {stats?.totalRides || 0} total rides
                   </Text>
                 </View>
               </View>
@@ -128,72 +126,93 @@ const DriverProfileScreen: React.FC<DriverProfileScreenProps> = ({ navigation })
               onPress={handleEditProfile}
               style={styles.editButton}
               contentStyle={styles.editButtonContent}
+              labelStyle={styles.editButtonLabel}
             >
               Edit Profile
             </Button>
           </Surface>
 
-          {/* Quick Stats */}
-          <Surface style={styles.statsCard}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>Today's Performance</Text>
+          {/* Quick Stats - Enhanced Bolt Style */}
+          <Surface style={styles.statsCard} elevation={3}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>Today's Performance</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
-                <Text variant="headlineSmall" style={styles.statValue}>
-                  {stats?.ridesCompleted || 0}
-                </Text>
-                <Text variant="bodySmall" style={styles.statLabel}>Rides</Text>
+                <View style={styles.statValueContainer}>
+                  <Text variant="headlineMedium" style={styles.statValue}>
+                    {stats?.ridesCompleted || 0}
+                  </Text>
+                </View>
+                <Text variant="bodySmall" style={styles.statLabel}>Rides Completed</Text>
               </View>
+              
+              <View style={styles.statDivider} />
+              
               <View style={styles.statItem}>
-                <Text variant="headlineSmall" style={styles.statValue}>
-                  ${stats?.earnings?.toFixed(2) || '0.00'}
-                </Text>
-                <Text variant="bodySmall" style={styles.statLabel}>Earnings</Text>
+                <View style={styles.statValueContainer}>
+                  <Text variant="headlineMedium" style={styles.statValue}>
+                    ${stats?.earnings?.toFixed(2) || '0.00'}
+                  </Text>
+                </View>
+                <Text variant="bodySmall" style={styles.statLabel}>Today's Earnings</Text>
               </View>
+              
+              <View style={styles.statDivider} />
+              
               <View style={styles.statItem}>
-                <Text variant="headlineSmall" style={styles.statValue}>
-                  {Math.floor((stats?.onlineTime || 0) / 60)}h {(stats?.onlineTime || 0) % 60}m
-                </Text>
-                <Text variant="bodySmall" style={styles.statLabel}>Online</Text>
+                <View style={styles.statValueContainer}>
+                  <Text variant="headlineMedium" style={styles.statValue}>
+                    {Math.floor((stats?.onlineTime || 0) / 60)}h {(stats?.onlineTime || 0) % 60}m
+                  </Text>
+                </View>
+                <Text variant="bodySmall" style={styles.statLabel}>Time Online</Text>
               </View>
             </View>
           </Surface>
 
-          {/* Menu Options */}
-          <Surface style={styles.menuCard}>
+          {/* Menu Options - Enhanced Bolt Style */}
+          <Surface style={styles.menuCard} elevation={3}>
             <List.Item
               title="Earnings"
-              description="View earnings history and reports"
-              left={(props) => <List.Icon {...props} icon="currency-usd" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              description="View earnings history and detailed reports"
+              left={(props) => <List.Icon {...props} icon="currency-usd" color={theme.colors.primary} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={theme.colors.onSurfaceVariant} />}
               onPress={handleViewEarnings}
               style={styles.menuItem}
+              titleStyle={styles.menuTitle}
+              descriptionStyle={styles.menuDescription}
             />
-            <Divider />
+            <Divider style={styles.menuDivider} />
             <List.Item
               title="Ride History"
-              description="View past rides and details"
-              left={(props) => <List.Icon {...props} icon="history" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              description="View past rides and trip details"
+              left={(props) => <List.Icon {...props} icon="history" color={theme.colors.primary} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={theme.colors.onSurfaceVariant} />}
               onPress={handleRideHistory}
               style={styles.menuItem}
+              titleStyle={styles.menuTitle}
+              descriptionStyle={styles.menuDescription}
             />
-            <Divider />
+            <Divider style={styles.menuDivider} />
             <List.Item
               title="Documents"
-              description="Manage license, insurance, vehicle docs"
-              left={(props) => <List.Icon {...props} icon="file-document" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              description="Manage license, insurance, and vehicle documents"
+              left={(props) => <List.Icon {...props} icon="file-document" color={theme.colors.primary} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={theme.colors.onSurfaceVariant} />}
               onPress={handleViewDocuments}
               style={styles.menuItem}
+              titleStyle={styles.menuTitle}
+              descriptionStyle={styles.menuDescription}
             />
-            <Divider />
+            <Divider style={styles.menuDivider} />
             <List.Item
               title="Settings"
-              description="App preferences and notifications"
-              left={(props) => <List.Icon {...props} icon="cog" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              description="App preferences and notification settings"
+              left={(props) => <List.Icon {...props} icon="cog" color={theme.colors.primary} />}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={theme.colors.onSurfaceVariant} />}
               onPress={handleSettings}
               style={styles.menuItem}
+              titleStyle={styles.menuTitle}
+              descriptionStyle={styles.menuDescription}
             />
           </Surface>
         </ScrollView>
@@ -220,109 +239,186 @@ const createStyles = (theme: AppTheme) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: spacing(2),
-      paddingVertical: spacing(1),
+      paddingVertical: spacing(1.5),
       backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.outline,
+      minHeight: 56,
     },
     headerTitle: {
-      flex: 1,
       textAlign: 'center',
-      fontWeight: '600',
+      fontWeight: '700',
       color: theme.colors.onSurface,
+      fontSize: 20,
     },
-    headerSpacer: {
+    headerPlaceholder: {
       width: 48,
+      height: 48,
     },
     scrollView: {
       flex: 1,
       paddingHorizontal: spacing(3),
+      paddingTop: spacing(2),
     },
     profileCard: {
-      padding: spacing(3),
-      marginVertical: spacing(2),
-      borderRadius: radii.lg,
+      padding: spacing(4),
+      marginVertical: spacing(3),
+      borderRadius: radii.xl,
       backgroundColor: theme.colors.surface,
-      elevation: 2,
+      elevation: 4,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
     },
     profileHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: spacing(3),
+      marginBottom: spacing(4),
     },
     avatar: {
       backgroundColor: theme.colors.primary,
       marginRight: spacing(3),
     },
+    avatarLabel: {
+      color: theme.colors.onPrimary,
+      fontWeight: '700',
+      fontSize: 32,
+    },
     profileInfo: {
       flex: 1,
     },
     driverName: {
-      fontWeight: '600',
+      fontWeight: '700',
       color: theme.colors.onSurface,
       marginBottom: spacing(0.5),
+      fontSize: 24,
     },
     driverEmail: {
       color: theme.colors.onSurfaceVariant,
-      marginBottom: spacing(1),
+      marginBottom: spacing(2),
+      fontSize: 16,
     },
     ratingContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: spacing(2),
+    },
+    ratingBadge: {
+      backgroundColor: theme.colors.primaryContainer,
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(0.5),
+      borderRadius: radii.md,
     },
     rating: {
-      fontWeight: '500',
-      color: theme.colors.onSurface,
-      marginRight: spacing(2),
+      fontWeight: '600',
+      color: theme.colors.onPrimaryContainer,
+      fontSize: 14,
     },
     totalRides: {
       color: theme.colors.onSurfaceVariant,
+      fontSize: 14,
     },
     editButton: {
-      borderColor: theme.colors.outline,
+      borderColor: theme.colors.primary,
+      borderWidth: 2,
+      borderRadius: radii.lg,
     },
     editButtonContent: {
-      paddingVertical: spacing(0.5),
+      paddingVertical: spacing(1),
+    },
+    editButtonLabel: {
+      fontWeight: '600',
+      fontSize: 16,
     },
     statsCard: {
-      padding: spacing(3),
-      marginBottom: spacing(2),
-      borderRadius: radii.lg,
+      padding: spacing(4),
+      marginBottom: spacing(3),
+      borderRadius: radii.xl,
       backgroundColor: theme.colors.surface,
-      elevation: 2,
+      elevation: 4,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
     },
     sectionTitle: {
-      fontWeight: '600',
+      fontWeight: '700',
       color: theme.colors.onSurface,
-      marginBottom: spacing(2),
+      marginBottom: spacing(3),
+      textAlign: 'center',
+      fontSize: 20,
     },
     statsGrid: {
       flexDirection: 'row',
-      justifyContent: 'space-around',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
     statItem: {
       alignItems: 'center',
+      flex: 1,
+    },
+    statValueContainer: {
+      backgroundColor: theme.colors.primaryContainer,
+      borderRadius: radii.lg,
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(1),
+      marginBottom: spacing(1),
+      minWidth: 80,
+      alignItems: 'center',
+    },
+    statDivider: {
+      width: 1,
+      height: 50,
+      backgroundColor: theme.colors.outline,
+      marginHorizontal: spacing(1),
     },
     statValue: {
       fontWeight: '700',
-      color: theme.colors.primary,
-      marginBottom: spacing(0.5),
+      color: theme.colors.onPrimaryContainer,
+      fontSize: 20,
+      textAlign: 'center',
     },
     statLabel: {
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
+      fontSize: 12,
+      fontWeight: '500',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     menuCard: {
-      marginBottom: spacing(3),
-      borderRadius: radii.lg,
+      marginBottom: spacing(4),
+      borderRadius: radii.xl,
       backgroundColor: theme.colors.surface,
-      elevation: 2,
+      elevation: 4,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
       overflow: 'hidden',
     },
     menuItem: {
-      paddingHorizontal: spacing(3),
-      paddingVertical: spacing(2),
+      paddingHorizontal: spacing(4),
+      paddingVertical: spacing(3),
+      minHeight: 72, // Ensure comfortable touch target
+    },
+    menuTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+    },
+    menuDescription: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      lineHeight: 20,
+    },
+    menuDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: theme.colors.outline,
+      marginLeft: spacing(4),
     },
   });
 

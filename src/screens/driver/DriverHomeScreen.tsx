@@ -81,16 +81,18 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   useEffect(() => {
     initializeDriver();
     setupSocketListeners();
+    const appStateSubscription = setupAppStateListener();
     
     return () => {
       cleanupLocationTracking();
       cleanupSocketListeners();
+      appStateSubscription?.remove();
     };
   }, []);
 
   useEffect(() => {
     if (socket && isConnected && user) {
-      // Connect as driver
+      // Connect as driver and set online automatically
       socket.emit('driver:connect', {
         driverId: user.id,
         location: currentLocation ? {
@@ -98,6 +100,8 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
           longitude: currentLocation.coords.longitude
         } : null
       });
+      // Automatically set driver as available when app is active
+      setIsAvailable(true);
     }
   }, [socket, isConnected, user, currentLocation]);
 
@@ -155,6 +159,36 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
     joinRoom(user?.id || '', user?.role || 'DRIVER');
   };
 
+  const setupAppStateListener = () => {
+    const handleAppStateChange = (nextAppState: string) => {
+      console.log('🔄 App state changed to:', nextAppState);
+      
+      if (nextAppState === 'active') {
+        // App is in foreground - set driver online
+        setIsAvailable(true);
+        console.log('📱 Driver set online - app active');
+      } else if (nextAppState === 'background') {
+        // App is in background - keep driver online
+        console.log('📱 Driver remains online - app in background');
+      } else if (nextAppState === 'inactive') {
+        // App is being closed - set driver offline
+        setIsAvailable(false);
+        console.log('📱 Driver set offline - app inactive');
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    // Set initial state based on current app state
+    setIsAvailable(AppState.currentState === 'active');
+    
+    return subscription;
+  };
+
+  const cleanupAppStateListener = () => {
+    // Cleanup will be handled by the useEffect return function
+  };
+
   const cleanupSocketListeners = () => {
     if (!socket) return;
 
@@ -189,30 +223,6 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
     setShowIncomingRide(false);
     setActiveRideRequest(null);
     Alert.alert('Ride Cancelled', 'The ride has been cancelled by the rider.');
-  };
-
-  const toggleAvailability = async () => {
-    try {
-      if (!isAvailable) {
-        // Going online
-        if (!locationPermission) {
-          Alert.alert('Location Required', 'Please enable location services to go online.');
-          return;
-        }
-        
-        await startLocationTracking();
-        await driverService.updateStatus('available');
-        setIsAvailable(true);
-      } else {
-        // Going offline
-        await stopLocationTracking();
-        await driverService.updateStatus('offline');
-        setIsAvailable(false);
-      }
-    } catch (error) {
-      console.error('Error toggling availability:', error);
-      Alert.alert('Error', 'Failed to update availability status.');
-    }
   };
 
   const startLocationTracking = async () => {
@@ -327,30 +337,27 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
-      {/* Header with navigation and profile */}
+      
+      {/* Header - Enhanced Bolt Style */}
       <Surface elevation={0} style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          iconColor={theme.colors.onSurface}
-          size={24}
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        />
+        <View style={styles.headerPlaceholder} />
         <View style={styles.headerContent}>
-          <Text variant="titleMedium" style={styles.headerTitle}>
+          <Text variant="titleLarge" style={styles.headerTitle}>
             Driver Dashboard
           </Text>
-          <Text variant="bodySmall" style={styles.headerSubtitle}>
-            {isAvailable ? 'Online - Accepting rides' : 'Offline'}
-          </Text>
         </View>
-        <IconButton
-          icon="account-circle"
-          iconColor={theme.colors.onSurface}
-          size={24}
-          onPress={() => navigation.navigate('DriverProfile')}
-          style={styles.profileButton}
-        />
+        <View style={styles.profileContainer}>
+          <IconButton
+            icon="account-circle"
+            iconColor={theme.colors.primary}
+            size={28}
+            onPress={() => navigation.navigate('DriverProfile')}
+            style={styles.profileButton}
+          />
+          {isAvailable && (
+            <View style={styles.onlineIndicator} />
+          )}
+        </View>
       </Surface>
 
       {/* Map */}
@@ -375,51 +382,24 @@ const DriverHomeScreen: React.FC<DriverHomeScreenProps> = ({ navigation }) => {
         )}
       </MapView>
 
-      {/* Status Panel */}
-      <Surface style={styles.statusPanel}>
-        <Card>
-          <Card.Content style={styles.statusContent}>
-            <View style={styles.availabilityRow}>
-              <View>
-                <Text style={styles.statusTitle}>
-                  {isAvailable ? 'Online' : 'Offline'}
-                </Text>
-                <Text style={styles.statusSubtitle}>
-                  {isAvailable ? 'Ready for ride requests' : 'Not accepting rides'}
-                </Text>
-              </View>
-              <Switch
-                value={isAvailable}
-                onValueChange={toggleAvailability}
-                color={theme.colors.primary}
-              />
-            </View>
-          </Card.Content>
-        </Card>
-      </Surface>
-
       {/* Stats Panel */}
-      <Surface style={styles.statsPanel}>
-        <Card>
-          <Card.Content>
-            <Text style={styles.panelTitle}>Today's Summary</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{todayStats.ridesCompleted}</Text>
-                <Text style={styles.statLabel}>Rides</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{todayStats.earnings.toFixed(3)} TND</Text>
-                <Text style={styles.statLabel}>Earnings</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{Math.floor(todayStats.onlineTime / 60)}h</Text>
-                <Text style={styles.statLabel}>Online</Text>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
-      </Surface>
+      <View style={styles.statsPanel}>
+        <Text style={styles.statsTitle}>Today</Text>
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{todayStats.ridesCompleted}</Text>
+            <Text style={styles.statLabel}>Rides</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{todayStats.earnings.toFixed(0)} TND</Text>
+            <Text style={styles.statLabel}>Earnings</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{Math.floor(todayStats.onlineTime / 60)}h</Text>
+            <Text style={styles.statLabel}>Hours</Text>
+          </View>
+        </View>
+      </View>
 
       {/* Incoming Ride Modal */}
       <Portal>
@@ -497,29 +477,50 @@ const createStyles = (theme: AppTheme) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: spacing(1),
-      paddingVertical: spacing(1),
+      paddingHorizontal: spacing(2),
+      paddingVertical: spacing(1.5),
       backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.outlineVariant,
+      borderBottomColor: theme.colors.outline,
+      minHeight: 56, // Ensure header doesn't get cropped
     },
-    backButton: {
-      margin: 0,
+    headerPlaceholder: {
+      width: 48,
+      height: 48,
+    },
+    profileContainer: {
+      position: 'relative',
     },
     profileButton: {
       margin: 0,
+      backgroundColor: theme.colors.primaryContainer,
+    },
+    onlineIndicator: {
+      position: 'absolute',
+      bottom: 2,
+      left: 2,
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      backgroundColor: '#4CAF50', // Green color
+      borderWidth: 2,
+      borderColor: theme.colors.surface,
     },
     headerContent: {
       flex: 1,
       alignItems: 'center',
+      paddingHorizontal: spacing(2),
     },
     headerTitle: {
       color: theme.colors.onSurface,
-      fontWeight: '600',
+      fontWeight: '700',
+      fontSize: 20,
     },
     headerSubtitle: {
       color: theme.colors.onSurfaceVariant,
-      marginTop: spacing(0.25),
+      marginTop: spacing(0.5),
+      fontSize: 14,
+      textAlign: 'center',
     },
     centerContainer: {
       flex: 1,
@@ -536,65 +537,29 @@ const createStyles = (theme: AppTheme) =>
     map: {
       flex: 1,
     },
-    statusPanel: {
-      position: 'absolute',
-      top: spacing(8),
-      left: spacing(2),
-      right: spacing(2),
-      borderRadius: radii.lg,
-      backgroundColor: theme.colors.surface,
-      borderWidth: 1,
-      borderColor: theme.colors.outline,
-      elevation: 6,
-      shadowColor: theme.colors.onSurface,
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 6 },
-    },
-    statusContent: {
-      paddingVertical: spacing(2),
-      paddingHorizontal: spacing(2.5),
-    },
-    availabilityRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    statusTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.onSurface,
-    },
-    statusSubtitle: {
-      fontSize: 14,
-      color: theme.colors.onSurfaceVariant,
-      marginTop: spacing(0.5),
-    },
     statsPanel: {
       position: 'absolute',
-      bottom: 0,
+      bottom: 0, // Right where nav buttons start
       left: 0,
       right: 0,
-      borderTopLeftRadius: radii.xl,
-      borderTopRightRadius: radii.xl,
       backgroundColor: theme.colors.surface,
-      borderTopWidth: 1,
-      borderColor: theme.colors.outline,
-      elevation: 10,
-      shadowColor: theme.colors.onSurface,
-      shadowOpacity: 0.12,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: -4 },
+      borderTopLeftRadius: radii.lg,
+      borderTopRightRadius: radii.lg,
+      padding: spacing(3),
+      paddingBottom: spacing(6), // Extra padding to account for nav buttons
+      elevation: 4,
     },
-    panelTitle: {
+    statsTitle: {
       fontSize: 16,
       fontWeight: '600',
-      marginBottom: spacing(2),
       color: theme.colors.onSurface,
+      marginBottom: spacing(2),
+      textAlign: 'center',
     },
     statsRow: {
       flexDirection: 'row',
       justifyContent: 'space-around',
+      alignItems: 'center',
     },
     statItem: {
       alignItems: 'center',
@@ -603,48 +568,54 @@ const createStyles = (theme: AppTheme) =>
       fontSize: 20,
       fontWeight: '700',
       color: theme.colors.primary,
+      marginBottom: spacing(0.5),
     },
     statLabel: {
       fontSize: 12,
       color: theme.colors.onSurfaceVariant,
-      marginTop: spacing(0.5),
+      fontWeight: '500',
     },
     rideModal: {
       backgroundColor: theme.colors.surface,
-      margin: spacing(3),
-      borderRadius: radii.lg,
-      padding: spacing(3),
-      maxHeight: '80%',
+      margin: spacing(4),
+      borderRadius: radii.xl,
+      padding: spacing(4),
+      maxHeight: '75%',
       borderWidth: 1,
       borderColor: theme.colors.outline,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.15,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 8 },
     },
     modalTitle: {
-      fontSize: 20,
-      fontWeight: '600',
+      fontSize: 24,
+      fontWeight: '700',
       textAlign: 'center',
-      marginBottom: spacing(2.5),
+      marginBottom: spacing(3),
       color: theme.colors.primary,
     },
     divider: {
-      marginVertical: spacing(2),
+      marginVertical: spacing(3),
       height: StyleSheet.hairlineWidth,
       backgroundColor: theme.colors.outline,
     },
     modalButtons: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: spacing(2),
+      marginTop: spacing(3),
+      gap: spacing(2),
     },
     declineButton: {
       flex: 1,
-      marginRight: spacing(1),
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       borderColor: theme.colors.error,
+      borderWidth: 2,
     },
     acceptButton: {
       flex: 1,
-      marginLeft: spacing(1),
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
+      elevation: 2,
     },
   });
 

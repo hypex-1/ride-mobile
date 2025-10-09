@@ -141,12 +141,7 @@ const DriverPickupScreen: React.FC<DriverPickupScreenProps> = ({ navigation, rou
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            iconColor={theme.colors.onSurface}
-            onPress={() => navigation.goBack()}
-          />
+          <View style={styles.headerPlaceholder} />
           <Text variant="titleLarge" style={styles.headerTitle}>
             Pickup Rider
           </Text>
@@ -155,6 +150,7 @@ const DriverPickupScreen: React.FC<DriverPickupScreenProps> = ({ navigation, rou
             size={24}
             iconColor={theme.colors.primary}
             onPress={handleCallRider}
+            style={styles.headerAction}
           />
         </View>
 
@@ -260,17 +256,26 @@ const createStyles = (theme: AppTheme) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: spacing(2),
       paddingVertical: spacing(1),
       backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.outline,
+      minHeight: 56,
+    },
+    headerPlaceholder: {
+      width: 48,
+      height: 48,
     },
     headerTitle: {
       flex: 1,
       textAlign: 'center',
       fontWeight: '600',
       color: theme.colors.onSurface,
+    },
+    headerAction: {
+      margin: 0,
     },
     mapContainer: {
       flex: 1,

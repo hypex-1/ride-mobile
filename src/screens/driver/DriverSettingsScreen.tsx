@@ -114,16 +114,11 @@ const DriverSettingsScreen: React.FC<DriverSettingsScreenProps> = ({ navigation 
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            iconColor={theme.colors.onSurface}
-            onPress={() => navigation.goBack()}
-          />
+          <View style={styles.headerPlaceholder} />
           <Text variant="titleLarge" style={styles.headerTitle}>
             Settings
           </Text>
-          <View style={styles.headerSpacer} />
+          <View style={styles.headerPlaceholder} />
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -339,20 +334,23 @@ const createStyles = (theme: AppTheme) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: spacing(2),
-      paddingVertical: spacing(1),
+      paddingVertical: spacing(1.5),
       backgroundColor: theme.colors.surface,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.outline,
+      minHeight: 56,
     },
     headerTitle: {
-      flex: 1,
       textAlign: 'center',
-      fontWeight: '600',
+      fontWeight: '700',
       color: theme.colors.onSurface,
+      fontSize: 20,
     },
-    headerSpacer: {
+    headerPlaceholder: {
       width: 48,
+      height: 48,
     },
     scrollView: {
       flex: 1,
