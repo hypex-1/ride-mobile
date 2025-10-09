@@ -18,12 +18,9 @@ import { LoginCredentials } from '../../services/auth';
 import { validateEmail } from '../../utils';
 import { useAppTheme, spacing, radii } from '../../theme';
 import type { AppTheme } from '../../theme';
+import type { LoginScreenProps } from '../../types/navigation';
 
 const { height } = Dimensions.get('window');
-
-interface LoginScreenProps {
-  navigation: any;
-}
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { login, isLoading } = useAuth();
@@ -80,7 +77,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           onPress={() => navigation.goBack()}
         />
         <Text variant="titleMedium" style={styles.headerTitle}>
-          Enter your number
+          Sign In
         </Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -89,15 +86,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       <View style={styles.content}>
         {/* Title */}
         <Text variant="headlineMedium" style={styles.title}>
-          What's your number?
+          Welcome back
         </Text>
         
         {/* Subtitle */}
         <Text variant="bodyLarge" style={styles.subtitle}>
-          We'll text a code to verify your phone.
+          Sign in to your account to continue.
         </Text>
 
-        {/* Email Input (using email instead of phone for demo) */}
+        {/* Email Input */}
         <View style={styles.inputContainer}>
           <TextInput
             label="Email"

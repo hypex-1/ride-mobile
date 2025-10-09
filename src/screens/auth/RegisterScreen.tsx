@@ -20,12 +20,9 @@ import { RegisterData } from '../../services/auth';
 import { validateEmail } from '../../utils';
 import { useAppTheme, spacing, radii } from '../../theme';
 import type { AppTheme } from '../../theme';
+import type { RegisterScreenProps } from '../../types/navigation';
 
 const { height } = Dimensions.get('window');
-
-interface RegisterScreenProps {
-  navigation: any;
-}
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const { register, isLoading } = useAuth();
