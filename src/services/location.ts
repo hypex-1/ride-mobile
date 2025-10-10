@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { logger } from '../utils/logger';
 
 const RAW_GOOGLE_MAPS_API_KEY = (
   process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||

@@ -1,12 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { apiService } from './api';
-
-// Configure notification handling
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { Platform } from 'react-native';
 import apiService from './api';
 import { logger } from '../utils/logger';
 

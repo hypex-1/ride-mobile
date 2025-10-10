@@ -1,4 +1,5 @@
 import apiService from './api';
+import { logger } from '../utils/logger';
 
 export interface RideLocation {
   latitude: number;
