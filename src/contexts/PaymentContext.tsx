@@ -49,10 +49,10 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
   // Select payment method
   const selectPaymentMethod = useCallback((method: PaymentMethod) => {
     if (!method.enabled) {
-      console.warn('⚠️ Payment method not enabled:', method.name);
+      console.warn(' Payment method not enabled:', method.name);
       return;
     }
-    console.log('💳 Payment method selected:', method.name);
+    console.log(' Payment method selected:', method.name);
     setSelectedPaymentMethod(method);
   }, []);
 
@@ -69,7 +69,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     setIsProcessingPayment(true);
 
     try {
-      console.log('💰 Processing ride payment:', { rideId, amount, method: selectedPaymentMethod.type });
+      console.log(' Processing ride payment:', { rideId, amount, method: selectedPaymentMethod.type });
 
       let paymentLog: PaymentLog;
 
@@ -100,14 +100,14 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
           throw new Error('Invalid payment method');
       }
 
-      console.log('✅ Payment processed successfully:', paymentLog);
+      console.log(' Payment processed successfully:', paymentLog);
       
       // Update payment history
       setPaymentHistory(prev => [paymentLog, ...prev]);
 
       return paymentLog;
     } catch (error) {
-      console.error('❌ Error processing payment:', error);
+      console.error(' Error processing payment:', error);
       throw error;
     } finally {
       setIsProcessingPayment(false);
@@ -117,12 +117,12 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
   // Fetch payment receipt
   const fetchPaymentReceipt = useCallback(async (rideId: string | number): Promise<PaymentReceipt> => {
     try {
-      console.log('🧾 Fetching payment receipt for ride:', rideId);
+      console.log(' Fetching payment receipt for ride:', rideId);
       const receipt = await paymentService.getPaymentReceipt(rideId);
       setLastPaymentReceipt(receipt);
       return receipt;
     } catch (error) {
-      console.error('❌ Error fetching payment receipt:', error);
+      console.error(' Error fetching payment receipt:', error);
       throw error;
     }
   }, []);
@@ -132,17 +132,17 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     if (!user) return;
 
     try {
-      console.log('📄 Refreshing payment history');
+      console.log(' Refreshing payment history');
       const history = await paymentService.getPaymentHistory();
       setPaymentHistory(history);
     } catch (error) {
-      console.error('❌ Error refreshing payment history:', error);
+      console.error(' Error refreshing payment history:', error);
     }
   }, [user]);
 
   // Clear payment data
   const clearPaymentData = useCallback(() => {
-    console.log('🧹 Clearing payment data');
+    console.log(' Clearing payment data');
     setLastPaymentReceipt(null);
     setPaymentHistory([]);
     setSelectedPaymentMethod(paymentService.getDefaultPaymentMethod());

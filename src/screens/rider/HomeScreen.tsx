@@ -159,6 +159,7 @@ const HomeScreen: React.FC = () => {
   const { user } = useAuth();
   const {
     socket,
+    isConnected,
     onRideUpdate,
     onDriverLocation,
     onRideAccepted,
@@ -174,8 +175,8 @@ const HomeScreen: React.FC = () => {
   const [pickupLocation, setPickupLocation] = useState<RideLocation | null>(null);
   const [dropoffLocation, setDropoffLocation] = useState<RideLocation | null>(null);
   const [region, setRegion] = useState({
-    latitude: 35.7664,
-    longitude: 10.8147,
+    latitude: 35.7714, // Monastir Marina coordinates
+    longitude: 10.8269,
     latitudeDelta: LATITUDE_DELTA,
     longitudeDelta: LONGITUDE_DELTA,
   });
@@ -568,32 +569,38 @@ const HomeScreen: React.FC = () => {
     () =>
       nearbyDrivers
         .filter((driver) => driver.location)
-        .slice(0, 6)
+        .slice(0, 8)
         .map((driver) => (
           <Marker
             key={driver.id}
             coordinate={driver.location!}
             title={driver.name}
             description={`${driver.vehicle.make} ${driver.vehicle.model} - ${driver.distance?.toFixed(1)}km away`}
-            pinColor={theme.colors.secondary}
+            anchor={{ x: 0.5, y: 0.5 }}
           >
+            <View style={styles.driverMarkerContainer}>
+              <Text style={styles.driverCarIcon}></Text>
+            </View>
             <Callout>
               <View style={styles.calloutContainer}>
-                <Text style={styles.calloutTitle}>{driver.name}</Text>
+                <Text style={styles.calloutTitle}> {driver.name}</Text>
                 <Text style={styles.calloutSubtitle}>
                   {driver.vehicle.color} {driver.vehicle.make} {driver.vehicle.model}
                 </Text>
                 <Text style={styles.calloutSubtitle}>
-                  Rating: {driver.rating} ⭐ {driver.distance?.toFixed(1)}km away
+                   Rating: {driver.rating} •  {driver.distance?.toFixed(1)}km away
                 </Text>
                 <Text style={styles.calloutSubtitle}>
-                  ETA: {driver.estimatedArrival} min
+                  ⏱ ETA: {driver.estimatedArrival} min
+                </Text>
+                <Text style={[styles.calloutSubtitle, { color: theme.colors.primary }]}>
+                   Available Now
                 </Text>
               </View>
             </Callout>
           </Marker>
         )),
-    [nearbyDrivers, styles, theme.colors.secondary],
+    [nearbyDrivers, styles, theme.colors.primary],
   );
 
   const closeLocationSearch = useCallback((options?: { resetText?: boolean }) => {
@@ -894,7 +901,8 @@ const HomeScreen: React.FC = () => {
         currentLocation.latitude,
         currentLocation.longitude,
         dropoffLocation?.latitude,
-        dropoffLocation?.longitude
+        dropoffLocation?.longitude,
+        15 // Increased radius to 15km for better driver coverage
       );
       setNearbyDrivers(drivers);
     } catch (error) {
@@ -916,7 +924,7 @@ const HomeScreen: React.FC = () => {
   const setupSocketListeners = () => {
     if (!socket) return;
 
-    console.log('🔧 Setting up enhanced socket listeners for rider');
+    console.log(' Setting up enhanced socket listeners for rider');
     
     // Use the enhanced socket context methods
     onRideUpdate(handleRideUpdate);
@@ -927,6 +935,15 @@ const HomeScreen: React.FC = () => {
     // Traditional socket listeners for compatibility
     socket.on('rideCompleted', handleRideCompleted);
     socket.on('driverAssigned', handleDriverAssigned);
+    
+    // Debug: Listen for any socket events
+    socket.onAny((eventName, ...args) => {
+      if (eventName.includes('ride') || eventName.includes('driver')) {
+        console.log(` RIDER received event: ${eventName}`, args);
+      }
+    });
+    
+    console.log(' Rider socket listeners setup complete');
   };
 
   const cleanupSocketListeners = () => {
@@ -952,28 +969,50 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleDriverLocationUpdate = (locationData: any) => {
-    console.log('Driver location update:', locationData);
+    console.log(' Real-time driver location update:', locationData);
     
-    // Update driver location on map if we have an active ride
+    // Update driver location in real-time for all nearby drivers
+    setNearbyDrivers(prev => 
+      prev.map(driver => {
+        if (driver.id === locationData.driverId) {
+          return { 
+            ...driver, 
+            location: {
+              latitude: locationData.location.latitude,
+              longitude: locationData.location.longitude,
+            },
+            // Update estimated arrival time based on current distance
+            estimatedArrival: Math.ceil(locationData.distance || driver.distance || 5)
+          };
+        }
+        return driver;
+      })
+    );
+    
+    // If we have an active ride, also update the specific driver for tracking
     if (currentRide && locationData.driverId === currentRide.driverId) {
-      // Update driver marker position
-      setNearbyDrivers(prev => 
-        prev.map(driver => 
-          driver.id === locationData.driverId 
-            ? { ...driver, location: locationData.location }
-            : driver
-        )
-      );
+      console.log(' Updating active ride driver location');
+      // This could trigger a map center update or notification
     }
   };
 
   const handleRideAccepted = (rideData: any) => {
     setIsSearchingDriver(false);
     setCurrentRide(rideData);
+    
+    // Add haptic feedback for successful ride acceptance
+    Platform.select({
+      ios: () => require('react-native').Vibration.vibrate(),
+      android: () => require('react-native').Vibration.vibrate(500),
+    })?.();
+    
     Alert.alert(
-      'Ride Accepted!', 
-      `Driver ${rideData.driver?.name || 'Unknown'} is on the way.`,
-      [{ text: 'OK', onPress: () => (navigation as any).navigate('RideTracking', { ride: rideData }) }]
+      ' Ride Accepted!', 
+      ` Driver ${rideData.driver?.name || 'Unknown'} is on the way!\n ETA: ${rideData.driver?.estimatedArrival || '5-10'} minutes\n You can track your driver in real-time.`,
+      [
+        { text: 'Track Ride', onPress: () => (navigation as any).navigate('RideTracking', { ride: rideData }), style: 'default' },
+        { text: 'OK', style: 'cancel' }
+      ]
     );
   };
 
@@ -981,7 +1020,7 @@ const HomeScreen: React.FC = () => {
     setCurrentRide(null);
     setIsRequestingRide(false);
     
-    console.log('🎉 Ride completed! Processing payment...', rideData);
+    console.log(' Ride completed! Processing payment...', rideData);
     
     try {
       // Process payment using the payment service
@@ -989,13 +1028,13 @@ const HomeScreen: React.FC = () => {
       
       await processRidePayment(rideData.id, paymentAmount);
       
-      console.log('✅ Payment processed successfully');
+      console.log(' Payment processed successfully');
       
       // Navigate to receipt screen with rideId
       (navigation as any).navigate('RideReceipt', { rideId: rideData.id });
       
     } catch (error) {
-      console.error('❌ Error processing payment:', error);
+      console.error(' Error processing payment:', error);
       Alert.alert(
         'Payment Error', 
         'There was an issue processing your payment. Please contact support.',
@@ -1010,7 +1049,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleRideCancelled = (data: any) => {
-    console.log('🚫 Ride cancelled by driver/system:', data);
+    console.log(' Ride cancelled by driver/system:', data);
     setCurrentRide(null);
     setIsRequestingRide(false);
     setIsSearchingDriver(false);
@@ -1023,7 +1062,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleDriverAssigned = (data: any) => {
-    console.log('👨‍✈️ Driver assigned:', data);
+    console.log('‍ Driver assigned:', data);
     setCurrentRide(data.ride);
     setIsSearchingDriver(false);
     
@@ -1085,8 +1124,8 @@ const HomeScreen: React.FC = () => {
       };
       
       const ride = await rideService.requestRide(rideRequest);
-      console.log('✅ Ride requested successfully:', ride);
-      console.log('🔍 Ride ID received:', ride?.id);
+      console.log(' Ride requested successfully:', ride);
+      console.log(' Ride ID received:', ride?.id);
       setCurrentRide(ride);
       
       // Emit socket event for real-time driver matching
@@ -1421,6 +1460,66 @@ const HomeScreen: React.FC = () => {
               ))}
             </View>
           </View>
+
+          {/* Real-time Status Indicator */}
+          <View style={styles.statusIndicator}>
+            <Text style={styles.statusText}>
+               {nearbyDrivers.length} drivers nearby •  Real-time tracking
+            </Text>
+            {isConnected ? (
+              <Text style={[styles.connectionStatus, { color: theme.colors.primary }]}>
+                🟢 Connected
+              </Text>
+            ) : (
+              <Text style={[styles.connectionStatus, { color: theme.colors.error }]}>
+                 Connecting...
+              </Text>
+            )}
+          </View>
+
+          {/* Debug Test Button - Remove in production */}
+          {__DEV__ && (
+            <Button
+              mode="outlined"
+              onPress={() => {
+                console.log(' DEBUG: Manually triggering ride request notification test');
+                console.log(' DEBUG: Current user:', user);
+                console.log(' DEBUG: Socket connected:', isConnected);
+                console.log(' DEBUG: Socket object:', !!socket);
+                
+                if (socket && isConnected) {
+                  const testRideData = {
+                    rideId: 'test-' + Date.now(),
+                    riderId: user?.id,
+                    pickupLocation: {
+                      latitude: 35.7714,
+                      longitude: 10.8269,
+                      address: 'Monastir Marina (Test)'
+                    },
+                    dropoffLocation: {
+                      latitude: 35.7811,
+                      longitude: 10.8167,
+                      address: 'ISIMM (Test)'
+                    },
+                    rideType: 'standard',
+                    estimatedFare: 5.5,
+                    estimatedDistance: 1.2
+                  };
+                  
+                  console.log(' Sending test ride request:', testRideData);
+                  emitRideRequest(testRideData);
+                  
+                  console.log(' Test ride request sent to nearby drivers');
+                } else {
+                  console.log(' Socket not connected for test');
+                }
+              }}
+              style={{ margin: spacing(1) }}
+              compact
+            >
+               Test Driver Notification
+            </Button>
+          )}
 
           {/* Request Button - Moved up */}
           <Button
@@ -1855,6 +1954,43 @@ const createStyles = (theme: AppTheme) =>
     },
     paymentOptionTextDisabled: {
       color: theme.colors.onSurfaceVariant,
+    },
+    driverMarkerContainer: {
+      backgroundColor: theme.colors.primary,
+      padding: spacing(1),
+      borderRadius: radii.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: theme.colors.surface,
+      shadowColor: theme.colors.onSurface,
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    driverCarIcon: {
+      fontSize: 18,
+      color: theme.colors.onPrimary,
+    },
+    statusIndicator: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: spacing(1.5),
+      paddingHorizontal: spacing(2),
+      backgroundColor: theme.colors.surfaceVariant,
+      borderRadius: radii.md,
+      marginBottom: spacing(2),
+    },
+    statusText: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      fontWeight: '500',
+    },
+    connectionStatus: {
+      fontSize: 11,
+      fontWeight: '600',
     },
   });
 

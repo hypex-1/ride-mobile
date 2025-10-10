@@ -23,7 +23,7 @@ const shouldRunIntegrationTests = process.env.RUN_INTEGRATION_TESTS === 'true' |
 const describeIntegration = shouldRunIntegrationTests ? describe : describe.skip;
 
 if (!shouldRunIntegrationTests) {
-  console.log('⏭️ Skipping integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
+  console.log('⏭ Skipping integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
 }
 
 describeIntegration('Integration Tests with Real Backend', () => {
@@ -34,7 +34,7 @@ describeIntegration('Integration Tests with Real Backend', () => {
   beforeAll(async () => {
     // Configure API service for staging
     if (STAGING_API_URL !== apiService.getBaseURL()) {
-      console.log(`🔧 Configuring API service for staging: ${STAGING_API_URL}`);
+      console.log(` Configuring API service for staging: ${STAGING_API_URL}`);
       apiService.setBaseURL(STAGING_API_URL);
     }
   });
@@ -264,12 +264,12 @@ describeIntegration('Integration Tests with Real Backend', () => {
 
       const connectionPromise = new Promise((resolve, reject) => {
         socket.on('connect', () => {
-          console.log('✅ Socket connected:', socket.id);
+          console.log(' Socket connected:', socket.id);
           resolve(socket.id);
         });
 
   socket.on('connect_error', (error: Error) => {
-          console.error('❌ Socket connection error:', error);
+          console.error(' Socket connection error:', error);
           reject(error);
         });
 
@@ -297,13 +297,13 @@ describeIntegration('Integration Tests with Real Backend', () => {
       }
     }
 
-    console.log('🧹 Integration test cleanup completed');
+    console.log(' Integration test cleanup completed');
   });
 });
 
 // Helper function to run integration tests manually
 export const runIntegrationTests = async () => {
-  console.log('🧪 Running Integration Tests with Real Backend...\n');
+  console.log(' Running Integration Tests with Real Backend...\n');
   
   const testResults = {
     auth: { passed: 0, failed: 0 },
@@ -314,39 +314,39 @@ export const runIntegrationTests = async () => {
 
   try {
     // Test authentication
-    console.log('1️⃣ Testing Authentication...');
+    console.log('1⃣ Testing Authentication...');
     const authResult = await authService.login({
       email: TEST_USER_EMAIL,
       password: TEST_USER_PASSWORD
     });
-    console.log('✅ Authentication successful');
+    console.log(' Authentication successful');
     testResults.auth.passed++;
 
     // Test ride operations
-    console.log('\n2️⃣ Testing Ride Operations...');
+    console.log('\n2⃣ Testing Ride Operations...');
     const fareResult = await rideService.calculateFare(
       { latitude: 36.8065, longitude: 10.1815, address: 'Tunis Downtown' },
       { latitude: 36.7980, longitude: 10.1648, address: 'Tunis Airport' },
       'standard'
     );
-    console.log('✅ Fare calculation successful:', fareResult);
+    console.log(' Fare calculation successful:', fareResult);
     testResults.rides.passed++;
 
     // Test payment operations
-    console.log('\n3️⃣ Testing Payment Operations...');
+    console.log('\n3⃣ Testing Payment Operations...');
     const paymentResult = await paymentService.logPayment({
       rideId: 'integration_test_ride',
       amount: 35.50,
       method: 'CASH'
     });
-    console.log('✅ Payment logging successful');
+    console.log(' Payment logging successful');
     testResults.payments.passed++;
 
-    console.log('\n🎉 All integration tests passed!');
+    console.log('\n All integration tests passed!');
     console.log('Test Results:', testResults);
 
   } catch (error) {
-    console.error('\n❌ Integration test failed:', error);
+    console.error('\n Integration test failed:', error);
     throw error;
   }
 };

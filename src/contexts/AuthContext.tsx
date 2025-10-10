@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentUser = await authService.getCurrentUser();
         if (currentUser) {
           setUser(currentUser);
-          // 🔔 Initialize push notifications for existing user
+          //  Initialize push notifications for existing user
           await initializePushNotifications();
         } else {
           // If getting user fails, clear auth data
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize push notifications and register token
   const initializePushNotifications = async () => {
     try {
-      console.log('🔔 Initializing push notifications...');
+      console.log(' Initializing push notifications...');
       
       // Get push token
       const pushToken = await notificationService.initialize();
@@ -71,15 +71,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Register token with backend
         const success = await notificationService.registerPushToken(pushToken);
         if (success) {
-          console.log('✅ Push notifications initialized successfully');
+          console.log(' Push notifications initialized successfully');
         } else {
-          console.log('⚠️ Failed to register push token with backend');
+          console.log(' Failed to register push token with backend');
         }
       } else {
-        console.log('⚠️ Failed to get push token');
+        console.log(' Failed to get push token');
       }
     } catch (error) {
-      console.error('❌ Error initializing push notifications:', error);
+      console.error(' Error initializing push notifications:', error);
     }
   };
 
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.login(credentials);
       setUser(response.user);
       
-      // 🔔 Initialize push notifications after successful login
+      //  Initialize push notifications after successful login
       await initializePushNotifications();
     } catch (error) {
       console.error('Login failed:', error);
@@ -105,7 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.register(userData);
       setUser(response.user);
       
-      // 🔔 Initialize push notifications after successful registration
+      //  Initialize push notifications after successful registration
       await initializePushNotifications();
     } catch (error) {
       console.error('Registration failed:', error);

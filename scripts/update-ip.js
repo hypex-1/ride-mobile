@@ -21,7 +21,7 @@ function getLocalIPAddress() {
     if (interfaces[name]) {
       for (const iface of interfaces[name]) {
         if (iface.family === 'IPv4' && !iface.internal) {
-          console.log(`🌐 Found IP on ${name}: ${iface.address}`);
+          console.log(` Found IP on ${name}: ${iface.address}`);
           return iface.address;
         }
       }
@@ -32,7 +32,7 @@ function getLocalIPAddress() {
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
-        console.log(`🌐 Found IP on ${name}: ${iface.address}`);
+        console.log(` Found IP on ${name}: ${iface.address}`);
         return iface.address;
       }
     }
@@ -45,7 +45,7 @@ function updateEnvFile(ipAddress) {
   const envPath = path.join(__dirname, '..', '.env');
   
   if (!fs.existsSync(envPath)) {
-    console.log('📝 Creating new .env file...');
+    console.log(' Creating new .env file...');
     const defaultEnv = `# Auto-generated environment configuration
 EXPO_PUBLIC_API_URL=http://${ipAddress}:3000
 EXPO_PUBLIC_WS_URL=ws://${ipAddress}:3000
@@ -110,18 +110,18 @@ CURRENCY=TND
   }
   
   fs.writeFileSync(envPath, envContent);
-  console.log(`✅ Updated .env with IP: ${ipAddress}`);
+  console.log(` Updated .env with IP: ${ipAddress}`);
 }
 
 function main() {
   try {
-    console.log('🔍 Detecting local IP address...');
+    console.log(' Detecting local IP address...');
     const ipAddress = getLocalIPAddress();
     updateEnvFile(ipAddress);
-    console.log('🚀 Ready to start Expo!');
+    console.log(' Ready to start Expo!');
   } catch (error) {
-    console.error('❌ Error:', error.message);
-    console.log('💡 Fallback: Using localhost (works only with emulator)');
+    console.error(' Error:', error.message);
+    console.log(' Fallback: Using localhost (works only with emulator)');
     updateEnvFile('localhost');
   }
 }

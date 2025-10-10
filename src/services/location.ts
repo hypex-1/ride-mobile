@@ -33,6 +33,38 @@ const TUNISIA_BOUNDS = {
   maxLongitude: 12.0,
 };
 
+// Development mock location for emulator testing
+const MOCK_LOCATIONS = {
+  monastir_isimm: { latitude: 35.7811, longitude: 10.8167, address: 'ISIMM - Institut Supérieur d\'Informatique et de Mathématiques, Monastir, Tunisia' },
+  monastir_marina: { latitude: 35.7714, longitude: 10.8269, address: 'Monastir Marina, Monastir, Tunisia' },
+  monastir_center: { latitude: 35.7781, longitude: 10.8267, address: 'Centre Ville Monastir, Tunisia' },
+  monastir_airport: { latitude: 35.7581, longitude: 10.7547, address: 'Monastir Habib Bourguiba International Airport, Tunisia' },
+};
+
+// Function to get a random mock location for different emulator instances
+const getRandomMockLocation = () => {
+  const locations = Object.values(MOCK_LOCATIONS);
+  const randomIndex = Math.floor(Math.random() * locations.length);
+  return locations[randomIndex];
+};
+
+// Function to get mock location based on device/emulator
+const getMockLocationForDevice = () => {
+  // Try to get a consistent location per device based on device characteristics
+  const deviceId = Math.abs(Date.now() % 2); // Simple way to differentiate devices
+  
+  if (deviceId === 0) {
+    console.log(' Assigning ISIMM location for this device (Driver)');
+    return MOCK_LOCATIONS.monastir_isimm;
+  } else {
+    console.log(' Assigning Marina location for this device (Rider)');
+    return MOCK_LOCATIONS.monastir_marina;
+  }
+};
+
+const isDevelopment = __DEV__;
+const USE_MOCK_LOCATION = isDevelopment; // Set to true for emulator testing
+
 const isWithinTunisia = (latitude: number, longitude: number): boolean =>
   latitude >= TUNISIA_BOUNDS.minLatitude &&
   latitude <= TUNISIA_BOUNDS.maxLatitude &&
@@ -57,6 +89,13 @@ class LocationService {
   // Get current position
   async getCurrentPosition(): Promise<LocationCoords | null> {
     try {
+      // Use mock location for development/emulator testing
+      if (USE_MOCK_LOCATION) {
+        const mockLocation = getMockLocationForDevice();
+        console.log(' Using mock location for emulator testing:', mockLocation.address);
+        return mockLocation;
+      }
+
       if (!this.hasPermission) {
         const permissionGranted = await this.requestPermissions();
         if (!permissionGranted) {
@@ -76,6 +115,12 @@ class LocationService {
       };
     } catch (error) {
       console.error('Error getting current position:', error);
+      // Fallback to mock location if real location fails
+      if (isDevelopment) {
+        const fallbackLocation = getMockLocationForDevice();
+        console.log(' Falling back to mock location:', fallbackLocation.address);
+        return fallbackLocation;
+      }
       return null;
     }
   }

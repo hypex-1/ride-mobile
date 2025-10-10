@@ -15,7 +15,7 @@ const shouldRun = process.env.RUN_INTEGRATION_TESTS === 'true';
 const describeIntegration = shouldRun ? describe : describe.skip;
 
 if (!shouldRun) {
-  console.log('⏭️ Skipping simplified integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
+  console.log('⏭ Skipping simplified integration tests (set RUN_INTEGRATION_TESTS=true to enable)');
 }
 
 describeIntegration('Integration Tests - Real Backend', () => {

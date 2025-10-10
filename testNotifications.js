@@ -7,7 +7,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 async function testBackendNotifications() {
   try {
-    console.log('🔔 Testing Backend Push Notifications');
+    console.log(' Testing Backend Push Notifications');
     console.log('=====================================');
 
     // Step 1: Login as rider
@@ -26,7 +26,7 @@ async function testBackendNotifications() {
     }
 
     const riderAuth = await riderLoginResponse.json();
-    console.log('✅ Rider logged in successfully');
+    console.log(' Rider logged in successfully');
 
     // Step 2: Login as driver
     console.log('2. Logging in as driver...');
@@ -44,7 +44,7 @@ async function testBackendNotifications() {
     }
 
     const driverAuth = await driverLoginResponse.json();
-    console.log('✅ Driver logged in successfully');
+    console.log(' Driver logged in successfully');
 
     // Step 3: Send test notification to rider
     console.log('3. Sending test notification to rider...');
@@ -55,7 +55,7 @@ async function testBackendNotifications() {
         'Authorization': `Bearer ${riderAuth.accessToken}`
       },
       body: JSON.stringify({
-        title: '🚗 Driver Found!',
+        title: ' Driver Found!',
         body: 'Ahmed Ben Salem has accepted your ride request.',
         data: {
           type: 'ride_accepted',
@@ -65,9 +65,9 @@ async function testBackendNotifications() {
     });
 
     if (riderNotificationResponse.ok) {
-      console.log('✅ Rider notification sent successfully');
+      console.log(' Rider notification sent successfully');
     } else {
-      console.log('⚠️ Rider notification failed:', await riderNotificationResponse.text());
+      console.log(' Rider notification failed:', await riderNotificationResponse.text());
     }
 
     // Step 4: Send test notification to driver
@@ -79,7 +79,7 @@ async function testBackendNotifications() {
         'Authorization': `Bearer ${driverAuth.accessToken}`
       },
       body: JSON.stringify({
-        title: '📱 New Ride Request!',
+        title: ' New Ride Request!',
         body: 'Pickup: Khniss, Monastir - Fare: 8.50 TND',
         data: {
           type: 'new_ride_request',
@@ -89,16 +89,16 @@ async function testBackendNotifications() {
     });
 
     if (driverNotificationResponse.ok) {
-      console.log('✅ Driver notification sent successfully');
+      console.log(' Driver notification sent successfully');
     } else {
-      console.log('⚠️ Driver notification failed:', await driverNotificationResponse.text());
+      console.log(' Driver notification failed:', await driverNotificationResponse.text());
     }
 
-    console.log('\n🎉 Push notification test completed!');
-    console.log('\n📱 Check your mobile devices for notifications');
+    console.log('\n Push notification test completed!');
+    console.log('\n Check your mobile devices for notifications');
 
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
+    console.error(' Test failed:', error.message);
   }
 }
 
@@ -107,27 +107,27 @@ async function checkBackend() {
   try {
     const response = await fetch(`${API_BASE_URL}/health`);
     if (response.ok) {
-      console.log('✅ Backend is running');
+      console.log(' Backend is running');
       return true;
     } else {
-      console.log('❌ Backend health check failed');
+      console.log(' Backend health check failed');
       return false;
     }
   } catch (error) {
-    console.log('❌ Backend is not running. Please start the backend server first.');
+    console.log(' Backend is not running. Please start the backend server first.');
     return false;
   }
 }
 
 // Main execution
 async function main() {
-  console.log('🔍 Checking backend status...');
+  console.log(' Checking backend status...');
   const backendRunning = await checkBackend();
   
   if (backendRunning) {
     await testBackendNotifications();
   } else {
-    console.log('\n💡 To start the backend:');
+    console.log('\n To start the backend:');
     console.log('   cd /path/to/backend');
     console.log('   npm start');
   }

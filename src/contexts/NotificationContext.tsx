@@ -40,7 +40,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   }, [user]);
 
   const setupNotificationListeners = () => {
-    console.log('🔧 Setting up notification listeners');
+    console.log(' Setting up notification listeners');
     
     const notificationListeners = notificationService.setupNotificationListeners();
     setListeners(notificationListeners);
@@ -64,7 +64,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const removeNotificationListeners = () => {
     if (listeners) {
-      console.log('🔧 Removing notification listeners');
+      console.log(' Removing notification listeners');
       notificationService.removeNotificationListeners(listeners);
       setListeners(null);
     }

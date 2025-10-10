@@ -24,10 +24,10 @@ const testRide = {
 
 async function testPaymentFlow() {
   try {
-    console.log('🧪 Starting Payment Backend Test...\n');
+    console.log(' Starting Payment Backend Test...\n');
 
     // Step 1: Login to get auth token
-    console.log('1️⃣ Logging in user...');
+    console.log('1⃣ Logging in user...');
     const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -42,11 +42,11 @@ async function testPaymentFlow() {
 
     const loginData = await loginResponse.json();
     const authToken = loginData.token;
-    console.log('✅ Login successful');
+    console.log(' Login successful');
     console.log(`   Token: ${authToken.substring(0, 20)}...`);
 
     // Step 2: Log payment for completed ride
-    console.log('\n2️⃣ Logging payment for ride...');
+    console.log('\n2⃣ Logging payment for ride...');
     const paymentData = {
       rideId: testRide.id,
       amount: testRide.actualFare,
@@ -76,13 +76,13 @@ async function testPaymentFlow() {
     }
 
     const paymentResult = await paymentResponse.json();
-    console.log('✅ Payment logged successfully');
+    console.log(' Payment logged successfully');
     console.log(`   Payment ID: ${paymentResult.id}`);
     console.log(`   Status: ${paymentResult.status}`);
     console.log(`   Amount: ${paymentResult.amount} ${paymentResult.currency}`);
 
     // Step 3: Fetch payment receipt
-    console.log('\n3️⃣ Fetching payment receipt...');
+    console.log('\n3⃣ Fetching payment receipt...');
     const receiptResponse = await fetch(`${API_BASE_URL}/payments/${testRide.id}`, {
       method: 'GET',
       headers: {
@@ -95,14 +95,14 @@ async function testPaymentFlow() {
     }
 
     const receiptData = await receiptResponse.json();
-    console.log('✅ Receipt fetched successfully');
+    console.log(' Receipt fetched successfully');
     console.log(`   Receipt ID: ${receiptData.id}`);
     console.log(`   Ride ID: ${receiptData.rideId}`);
     console.log(`   Driver: ${receiptData.driver.name}`);
     console.log(`   Total: ${receiptData.breakdown.totalAmount} ${receiptData.payment.currency}`);
 
     // Step 4: Test payment history
-    console.log('\n4️⃣ Fetching payment history...');
+    console.log('\n4⃣ Fetching payment history...');
     const historyResponse = await fetch(`${API_BASE_URL}/payments/history`, {
       method: 'GET',
       headers: {
@@ -115,20 +115,20 @@ async function testPaymentFlow() {
     }
 
     const historyData = await historyResponse.json();
-    console.log('✅ Payment history fetched successfully');
+    console.log(' Payment history fetched successfully');
     console.log(`   Total payments: ${historyData.length}`);
     if (historyData.length > 0) {
       console.log(`   Latest payment: ${historyData[0].id} (${historyData[0].amount} ${historyData[0].currency})`);
     }
 
-    console.log('\n🎉 All payment backend tests passed!');
+    console.log('\n All payment backend tests passed!');
     
   } catch (error) {
-    console.error('\n❌ Payment backend test failed:');
+    console.error('\n Payment backend test failed:');
     console.error(error.message);
     
     if (error.message.includes('fetch')) {
-      console.log('\n💡 Tips:');
+      console.log('\n Tips:');
       console.log('   - Make sure your backend server is running');
       console.log('   - Check the API_BASE_URL is correct');
       console.log('   - Verify the endpoints exist on your backend');
@@ -138,7 +138,7 @@ async function testPaymentFlow() {
 
 // Test individual payment endpoints
 async function testPaymentEndpoints() {
-  console.log('🔍 Testing Payment Endpoints...\n');
+  console.log(' Testing Payment Endpoints...\n');
 
   const endpoints = [
     { method: 'POST', path: '/payments/log', description: 'Log payment after ride completion' },
@@ -154,7 +154,7 @@ async function testPaymentEndpoints() {
 
   console.log('\nExpected Request/Response formats:');
   
-  console.log('\n📤 POST /payments/log');
+  console.log('\n POST /payments/log');
   console.log('Request Body:');
   console.log(JSON.stringify({
     rideId: 'string',
@@ -169,7 +169,7 @@ async function testPaymentEndpoints() {
     }
   }, null, 2));
 
-  console.log('\n📥 Response:');
+  console.log('\n Response:');
   console.log(JSON.stringify({
     id: 'payment_uuid',
     rideId: 'ride_uuid', 
@@ -182,10 +182,10 @@ async function testPaymentEndpoints() {
     metadata: {}
   }, null, 2));
 
-  console.log('\n📤 GET /payments/{rideId}');
+  console.log('\n GET /payments/{rideId}');
   console.log('Response: PaymentReceipt object with ride details, driver info, and payment breakdown');
 
-  console.log('\n📤 GET /payments/history');
+  console.log('\n GET /payments/history');
   console.log('Response: Array of PaymentLog objects for the authenticated user');
 }
 

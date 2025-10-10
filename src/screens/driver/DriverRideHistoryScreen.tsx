@@ -154,7 +154,7 @@ const DriverRideHistoryScreen: React.FC<DriverRideHistoryScreenProps> = ({ navig
 
   const getRatingStars = (rating?: number) => {
     if (!rating) return '—';
-    return '⭐'.repeat(rating);
+    return ''.repeat(rating);
   };
 
   const getStatusColor = (status: string) => {

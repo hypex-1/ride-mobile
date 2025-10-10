@@ -11,14 +11,14 @@ const paymentMethods = [
     id: 'cash',
     label: 'Cash',
     description: 'Pay driver in person',
-    icon: '💵',
+    icon: '',
     available: true,
   },
   {
     id: 'card',
     label: 'Card',
     description: 'Credit or debit card',
-    icon: '�',
+    icon: '',
     available: false,
     comingSoon: true,
   }
@@ -114,7 +114,7 @@ const PaymentMethodsScreen: React.FC<PaymentMethodsScreenProps> = ({ navigation 
           {/* Information Section with better styling */}
           <View style={styles.infoCard}>
             <View style={styles.infoHeader}>
-              <Text style={styles.infoIcon}>ℹ️</Text>
+              <Text style={styles.infoIcon}>ℹ</Text>
               <Text style={styles.infoTitle}>Payment Information</Text>
             </View>
             <Text style={styles.infoText}>

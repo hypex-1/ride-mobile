@@ -66,8 +66,8 @@ async function testEndpoint(endpoint) {
 }
 
 async function discoverBackendEndpoints() {
-  console.log(`🔍 Discovering Backend Delete Account Endpoints...`);
-  console.log(`📡 Testing against: ${API_BASE_URL}\n`);
+  console.log(` Discovering Backend Delete Account Endpoints...`);
+  console.log(` Testing against: ${API_BASE_URL}\n`);
   
   const results = [];
   
@@ -75,32 +75,32 @@ async function discoverBackendEndpoints() {
     const result = await testEndpoint(endpoint);
     results.push(result);
     
-    const statusColor = result.status === 404 ? '❌' : 
-                       result.status === 'ERROR' ? '💥' : 
-                       result.available ? '✅' : '⚠️';
+    const statusColor = result.status === 404 ? '' : 
+                       result.status === 'ERROR' ? '' : 
+                       result.available ? '' : '';
     
     console.log(`${statusColor} ${result.endpoint.padEnd(30)} | ${result.name.padEnd(25)} | Status: ${result.status}`);
     
     if (result.error) {
-      console.log(`   💬 Error: ${result.error}`);
+      console.log(`    Error: ${result.error}`);
     }
   }
   
   const availableEndpoints = results.filter(r => r.available && r.status !== 'ERROR');
   
-  console.log(`\n📊 Summary:`);
+  console.log(`\n Summary:`);
   console.log(`   Total endpoints tested: ${results.length}`);
   console.log(`   Available endpoints: ${availableEndpoints.length}`);
   console.log(`   Not found (404): ${results.filter(r => r.status === 404).length}`);
   console.log(`   Connection errors: ${results.filter(r => r.status === 'ERROR').length}`);
   
   if (availableEndpoints.length > 0) {
-    console.log(`\n✅ Available Delete Account Endpoints:`);
+    console.log(`\n Available Delete Account Endpoints:`);
     availableEndpoints.forEach(endpoint => {
       console.log(`   • ${endpoint.endpoint} - ${endpoint.name}`);
     });
     
-    console.log(`\n🔧 Recommended app.json configuration:`);
+    console.log(`\n Recommended app.json configuration:`);
     console.log(`{`);
     console.log(`  "expo": {`);
     console.log(`    "extra": {`);
@@ -114,8 +114,8 @@ async function discoverBackendEndpoints() {
     console.log(`  }`);
     console.log(`}`);
   } else {
-    console.log(`\n❌ No delete account endpoints found!`);
-    console.log(`\n💡 Backend needs to implement one of these endpoints:`);
+    console.log(`\n No delete account endpoints found!`);
+    console.log(`\n Backend needs to implement one of these endpoints:`);
     console.log(`   • POST /auth/delete-account (with password in body)`);
     console.log(`   • DELETE /users/me (current user deletion)`);
     console.log(`   • POST /auth/verify-password + DELETE /auth/account`);
@@ -141,14 +141,14 @@ async function main() {
   const isBackendRunning = await checkBackend();
   
   if (!isBackendRunning) {
-    console.log(`❌ Backend not reachable at ${API_BASE_URL}`);
-    console.log(`\n💡 To test endpoints:`);
+    console.log(` Backend not reachable at ${API_BASE_URL}`);
+    console.log(`\n To test endpoints:`);
     console.log(`   1. Start your backend server`);
     console.log(`   2. Set API_BASE_URL if different: API_BASE_URL=http://localhost:3001 node discoverDeleteEndpoints.js`);
     return;
   }
   
-  console.log(`✅ Backend is reachable at ${API_BASE_URL}\n`);
+  console.log(` Backend is reachable at ${API_BASE_URL}\n`);
   await discoverBackendEndpoints();
 }
 

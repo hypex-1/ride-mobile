@@ -35,12 +35,12 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
       setIsLoading(true);
       setError(null);
       
-      console.log('🧾 Fetching receipt for ride:', rideId);
+      console.log(' Fetching receipt for ride:', rideId);
       const receiptData = await fetchPaymentReceipt(rideId);
       setReceipt(receiptData);
       
     } catch (error) {
-      console.error('❌ Error fetching receipt:', error);
+      console.error(' Error fetching receipt:', error);
       setError('Failed to load receipt. Please try again.');
       
       // Fallback: Show mock receipt for demo
@@ -103,18 +103,18 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
 
     try {
       const shareContent = `
-🧾 Ride Receipt #${receipt.rideId}
+ Ride Receipt #${receipt.rideId}
 
-📍 From: ${receipt.ride.pickupAddress}
-📍 To: ${receipt.ride.dropoffAddress}
+ From: ${receipt.ride.pickupAddress}
+ To: ${receipt.ride.dropoffAddress}
 
-🚗 Driver: ${receipt.driver.name}
-🚗 Vehicle: ${receipt.driver.vehicleModel} (${receipt.driver.licensePlate})
+ Driver: ${receipt.driver.name}
+ Vehicle: ${receipt.driver.vehicleModel} (${receipt.driver.licensePlate})
 
-💰 Total: ${receipt.breakdown.totalAmount.toFixed(2)} ${receipt.payment.currency}
-💳 Payment: ${receipt.payment.method}
+ Total: ${receipt.breakdown.totalAmount.toFixed(2)} ${receipt.payment.currency}
+ Payment: ${receipt.payment.method}
 
-⭐ Thanks for riding with us!
+ Thanks for riding with us!
       `.trim();
 
       await Share.share({
@@ -122,7 +122,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
         title: `Ride Receipt #${receipt.rideId}`,
       });
     } catch (error) {
-      console.error('❌ Error sharing receipt:', error);
+      console.error(' Error sharing receipt:', error);
       setSnackbarVisible(true);
     }
   };
@@ -187,7 +187,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
         {/* Success Icon */}
         <View style={styles.successSection}>
           <View style={styles.successIcon}>
-            <Text style={styles.successIconText}>✓</Text>
+            <Text style={styles.successIconText}></Text>
           </View>
           <Text style={styles.successTitle}>Trip completed</Text>
           <Text style={styles.successSubtitle}>Hope you enjoyed your ride</Text>
@@ -245,7 +245,7 @@ const RideReceiptScreen: React.FC<RideReceiptScreenProps> = ({ route, navigation
               <Text style={styles.driverVehicle}>
                 {receipt.driver.vehicleModel} • {receipt.driver.licensePlate}
               </Text>
-              <Text style={styles.driverRating}>★ {receipt.driver.rating.toFixed(1)}</Text>
+              <Text style={styles.driverRating}> {receipt.driver.rating.toFixed(1)}</Text>
             </View>
           </View>
         </Surface>

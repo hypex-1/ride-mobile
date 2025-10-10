@@ -203,7 +203,7 @@ const DriverEarningsScreen: React.FC<DriverEarningsScreenProps> = ({ navigation 
             <Divider />
             <List.Item
               title="Rating Impact"
-              description={`Current rating: ${todayStats?.rating?.toFixed(1) || '5.0'} ⭐ - Great job!`}
+              description={`Current rating: ${todayStats?.rating?.toFixed(1) || '5.0'}  - Great job!`}
               left={(props) => <List.Icon {...props} icon="star" />}
               style={styles.insightItem}
             />

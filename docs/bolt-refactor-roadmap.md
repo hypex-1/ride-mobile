@@ -105,8 +105,8 @@ Deliverables:
 
 1. **Rider Home** – Align map overlay, booking CTA, bottom sheet.
 2. **Ride Tracking / In Progress** – Harmonise driver ETA card, live map controls.
-3. **Ride Receipt** – _Done_ ✅ (theme tokens applied).
-4. **Ride History** – _Done_ ✅ (themed header + tokens).
+3. **Ride Receipt** – _Done_  (theme tokens applied).
+4. **Ride History** – _Done_  (themed header + tokens).
 5. **Driver Home** – Mirror rider updates, include action cards.
 6. **Login/Register** – Apply theme typography and safe-area wrappers.
 7. **Settings/Profile/Payments/Support/Promotions** – Completed in previous sprints.
@@ -119,11 +119,11 @@ Track completion in `DEVELOPMENT_STATUS.md`.
 
 | Component            | Purpose                                | Status |
 |----------------------|-----------------------------------------|--------|
-| `PrimaryButton`      | Reusable CTA with theme tokens          | ✅ existing (`react-native-paper` Button themed)
-| `CardSurface`        | Wrapper for cards with consistent radii | 🔄 plan | 
-| `HeaderBar`          | Safe-area aware header with back icon   | ✅ reused across screens
-| `RideSummaryList`    | Use in history & receipt                | 🔄 plan |
-| `DriverInfoCard`     | Driver detail reuse                     | 🔄 plan |
+| `PrimaryButton`      | Reusable CTA with theme tokens          |  existing (`react-native-paper` Button themed)
+| `CardSurface`        | Wrapper for cards with consistent radii |  plan | 
+| `HeaderBar`          | Safe-area aware header with back icon   |  reused across screens
+| `RideSummaryList`    | Use in history & receipt                |  plan |
+| `DriverInfoCard`     | Driver detail reuse                     |  plan |
 | `BottomSheet`        | Elastic sheet for search flow           | ⏳ pending |
 
 ---
@@ -144,7 +144,7 @@ Track completion in `DEVELOPMENT_STATUS.md`.
 
 ## 13. Pixel-Perfect Checklist
 
-- ✅ SafeAreaView wrappers on headers and bottom sheets.
+-  SafeAreaView wrappers on headers and bottom sheets.
 - ⏳ Device matrix tests (iPhone 14 Pro, Pixel 8, Galaxy S23) – schedule once core screens updated.
 - ⏳ Font scaling audit (Android accessibility settings) to ensure no clipping.
 

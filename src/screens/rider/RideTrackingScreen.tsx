@@ -181,7 +181,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
             rotation={driverLocation.heading || 0}
           >
             <View style={styles.driverMarker}>
-              <Text style={styles.driverMarkerText}>🚗</Text>
+              <Text style={styles.driverMarkerText}></Text>
             </View>
           </Marker>
         )}
@@ -250,7 +250,7 @@ const RideTrackingScreen: React.FC<RideTrackingScreenProps> = ({ route, navigati
                   {driverInfo.vehicle} • {driverInfo.plateNumber}
                 </Text>
                 <View style={styles.ratingContainer}>
-                  <Text style={styles.rating}>★ {driverInfo.rating}</Text>
+                  <Text style={styles.rating}> {driverInfo.rating}</Text>
                 </View>
               </View>
             </View>

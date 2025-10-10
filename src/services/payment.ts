@@ -109,7 +109,7 @@ class PaymentService {
     metadata?: any;
   }): Promise<PaymentLog> {
     try {
-      console.log('💰 Logging payment:', paymentData);
+      console.log(' Logging payment:', paymentData);
 
       const response = await apiService.post<PaymentLog>('/payments/log', {
         rideId: paymentData.rideId,
@@ -124,10 +124,10 @@ class PaymentService {
         }
       });
 
-      console.log('✅ Payment logged successfully:', response);
+      console.log(' Payment logged successfully:', response);
       return response;
     } catch (error) {
-      console.error('❌ Error logging payment:', error);
+      console.error(' Error logging payment:', error);
       throw new Error('Failed to log payment');
     }
   }
@@ -135,14 +135,14 @@ class PaymentService {
   // Get payment receipt
   async getPaymentReceipt(rideId: string | number): Promise<PaymentReceipt> {
     try {
-      console.log('🧾 Fetching payment receipt for ride:', rideId);
+      console.log(' Fetching payment receipt for ride:', rideId);
 
       const response = await apiService.get<PaymentReceipt>(`/payments/${rideId}`);
       
-      console.log('✅ Payment receipt fetched successfully');
+      console.log(' Payment receipt fetched successfully');
       return response;
     } catch (error) {
-      console.error('❌ Error fetching payment receipt:', error);
+      console.error(' Error fetching payment receipt:', error);
       throw new Error('Failed to fetch payment receipt');
     }
   }
@@ -156,7 +156,7 @@ class PaymentService {
   }): Promise<PaymentLog> {
     try {
       // Future implementation for digital wallet integration
-      console.log('🚀 Processing digital wallet payment (Coming Soon)');
+      console.log(' Processing digital wallet payment (Coming Soon)');
       
       const response = await apiService.post<PaymentLog>('/payments/digital-wallet', {
         rideId: paymentData.rideId,
@@ -167,7 +167,7 @@ class PaymentService {
 
       return response;
     } catch (error) {
-      console.error('❌ Error processing digital wallet payment:', error);
+      console.error(' Error processing digital wallet payment:', error);
       throw new Error('Digital wallet payment failed');
     }
   }
@@ -181,7 +181,7 @@ class PaymentService {
   }): Promise<PaymentLog> {
     try {
       // Future implementation for card payment integration
-      console.log('🚀 Processing card payment (Coming Soon)');
+      console.log(' Processing card payment (Coming Soon)');
       
       const response = await apiService.post<PaymentLog>('/payments/card', {
         rideId: paymentData.rideId,
@@ -192,7 +192,7 @@ class PaymentService {
 
       return response;
     } catch (error) {
-      console.error('❌ Error processing card payment:', error);
+      console.error(' Error processing card payment:', error);
       throw new Error('Card payment failed');
     }
   }
@@ -203,7 +203,7 @@ class PaymentService {
       const response = await apiService.get<PaymentLog[]>('/payments/history');
       return response;
     } catch (error) {
-      console.error('❌ Error fetching payment history:', error);
+      console.error(' Error fetching payment history:', error);
       return [];
     }
   }

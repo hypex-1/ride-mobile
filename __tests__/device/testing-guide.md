@@ -1,4 +1,4 @@
-# 📱 Device Testing Guide
+#  Device Testing Guide
 
 ## Overview
 This guide covers testing the RideMobile app on real Android and iOS devices to ensure all features work correctly in production environments.
@@ -26,7 +26,7 @@ eas build --profile production --platform all
 
 ## Test Scenarios
 
-### 🔐 Authentication Flow
+###  Authentication Flow
 **Test Steps:**
 1. Open app on fresh install
 2. Register new account with real phone/email
@@ -41,7 +41,7 @@ eas build --profile production --platform all
 - Login persists across app restarts
 - Error handling for invalid credentials
 
-### 📍 Location Services
+###  Location Services
 **Test Steps:**
 1. Grant location permissions
 2. Verify current location accuracy
@@ -57,7 +57,7 @@ eas build --profile production --platform all
 - Handles GPS signal loss gracefully
 - Battery optimization doesn't kill location
 
-### 🚗 Ride Request Flow
+###  Ride Request Flow
 **Test Steps:**
 1. Set pickup location (current/manual)
 2. Set dropoff location
@@ -74,7 +74,7 @@ eas build --profile production --platform all
 - Maps display correctly
 - Navigation is accurate
 
-### 💰 Payment Integration
+###  Payment Integration
 **Test Steps:**
 1. Select Cash payment (default)
 2. Complete ride
@@ -89,7 +89,7 @@ eas build --profile production --platform all
 - Sharing works on device
 - Payment history accurate
 
-### 🔔 Push Notifications
+###  Push Notifications
 **Test Steps:**
 1. Enable notifications
 2. Test notification scenarios:
@@ -104,7 +104,7 @@ eas build --profile production --platform all
 - Works in background/foreground
 - Sound/vibration as expected
 
-### 🌐 Network Conditions
+###  Network Conditions
 **Test Steps:**
 1. Test on WiFi
 2. Test on 4G/5G
@@ -196,12 +196,12 @@ Performance.measure('app-launch', 'app-launch-start', 'app-launch-end');
 **Tester:** [Name]
 
 ### Test Results
-- [ ] Authentication: ✅ Pass / ❌ Fail
-- [ ] Location Services: ✅ Pass / ❌ Fail  
-- [ ] Ride Flow: ✅ Pass / ❌ Fail
-- [ ] Payments: ✅ Pass / ❌ Fail
-- [ ] Notifications: ✅ Pass / ❌ Fail
-- [ ] Network Handling: ✅ Pass / ❌ Fail
+- [ ] Authentication:  Pass /  Fail
+- [ ] Location Services:  Pass /  Fail  
+- [ ] Ride Flow:  Pass /  Fail
+- [ ] Payments:  Pass /  Fail
+- [ ] Notifications:  Pass /  Fail
+- [ ] Network Handling:  Pass /  Fail
 
 ### Issues Found
 1. [Issue description]

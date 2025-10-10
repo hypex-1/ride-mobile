@@ -1,8 +1,8 @@
-# 📱 RideMobile - Ride Sharing Mobile App
+#  RideMobile - Ride Sharing Mobile App
 
 Mobile application for the ride-sharing platform built with **Expo** and **TypeScript**.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 # Install dependencies
@@ -17,7 +17,7 @@ npx expo start --ios
 npx expo start --web
 ```
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Framework**: Expo SDK 52
 - **Language**: TypeScript
@@ -25,30 +25,30 @@ npx expo start --web
 - **Backend**: Node.js API at `http://localhost:3000/api`
 - **Real-time**: WebSocket at `ws://localhost:3000`
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 RideMobile/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── screens/        # App screens
-│   ├── services/       # API and business logic
-│   ├── navigation/     # App navigation
-│   ├── types/          # TypeScript definitions
-│   ├── constants/      # App constants
-│   └── utils/          # Helper functions
-├── assets/             # Images, icons, fonts
-└── app.json           # Expo configuration
+ src/
+    components/     # Reusable UI components
+    screens/        # App screens
+    services/       # API and business logic
+    navigation/     # App navigation
+    types/          # TypeScript definitions
+    constants/      # App constants
+    utils/          # Helper functions
+ assets/             # Images, icons, fonts
+ app.json           # Expo configuration
 ```
 
-## 🔗 Backend Integration
+##  Backend Integration
 
 - **API Base URL**: `http://localhost:3000/api`
 - **WebSocket URL**: `ws://localhost:3000`
 - **Authentication**: JWT tokens
 - **Real-time**: Ride tracking, driver location updates
 
-## 📱 Features
+##  Features
 
 ### Phase 1: Core Features
 - [ ] User authentication (Login/Register)
@@ -64,7 +64,7 @@ RideMobile/
 - [ ] Offline support
 - [ ] Analytics and monitoring
 
-## 🧪 Development
+##  Development
 
 ```bash
 # Install dependencies
@@ -83,19 +83,19 @@ yarn type-check
 yarn lint
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 - **Development**: Expo Go app
 - **Staging**: Expo Development Build
 - **Production**: App Store / Google Play Store
 
-## 📚 Documentation
+##  Documentation
 
 - [Expo Documentation](https://docs.expo.dev/)
 - [React Native Documentation](https://reactnative.dev/)
 - [Backend API Documentation](../ride-backend/docs/)
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
@@ -103,14 +103,14 @@ yarn lint
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**🎯 Backend Status**: ✅ Running and ready for mobile integration  
-**📱 Mobile Status**: 🚀 Scaffolded and ready for development  
-**🔗 Integration**: Ready for API and WebSocket connections  
+** Backend Status**:  Running and ready for mobile integration  
+** Mobile Status**:  Scaffolded and ready for development  
+** Integration**: Ready for API and WebSocket connections  
 
-Built with ❤️ using Expo and TypeScript
+Built with  using Expo and TypeScript

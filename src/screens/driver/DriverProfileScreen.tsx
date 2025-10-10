@@ -111,7 +111,7 @@ const DriverProfileScreen: React.FC<DriverProfileScreenProps> = ({ navigation })
                 <View style={styles.ratingContainer}>
                   <View style={styles.ratingBadge}>
                     <Text variant="bodyMedium" style={styles.rating}>
-                      ⭐ {stats?.rating?.toFixed(1) || '5.0'}
+                       {stats?.rating?.toFixed(1) || '5.0'}
                     </Text>
                   </View>
                   <Text variant="bodySmall" style={styles.totalRides}>

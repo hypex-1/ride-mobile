@@ -66,7 +66,7 @@ class RideService {
     pickupLng: number, 
     destinationLat?: number, 
     destinationLng?: number, 
-    radius: number = 5
+    radius: number = 15 // Increased radius to 15km for better coverage
   ): Promise<Driver[]> {
     try {
       // Use pickup location as destination if no destination provided
@@ -98,7 +98,7 @@ class RideService {
   // Request a ride
   async requestRide(rideRequest: RideRequest): Promise<Ride> {
     try {
-      console.log('🚗 REQUESTING RIDE - Original data:', JSON.stringify(rideRequest, null, 2));
+      console.log(' REQUESTING RIDE - Original data:', JSON.stringify(rideRequest, null, 2));
       
       // Transform the data to match backend expectations
       const requestData = {
@@ -111,7 +111,7 @@ class RideService {
         // Note: rideType is not expected by the backend
       };
       
-      console.log('🔄 TRANSFORMED DATA for backend:', JSON.stringify(requestData, null, 2));
+      console.log(' TRANSFORMED DATA for backend:', JSON.stringify(requestData, null, 2));
       
       const response = await apiService.post<Ride>('/rides', requestData);
       return response;
@@ -169,7 +169,7 @@ class RideService {
   // Cancel a ride
   async cancelRide(rideId: string | number, reason?: string): Promise<void> {
     try {
-      console.log('🚫 cancelRide called with:', { rideId, type: typeof rideId, reason });
+      console.log(' cancelRide called with:', { rideId, type: typeof rideId, reason });
       
       // Convert rideId to string if it's a number
       const rideIdStr = String(rideId);
@@ -186,9 +186,9 @@ class RideService {
         return;
       }
       
-      console.log('🔄 Sending cancel request to backend for ride:', rideIdStr);
+      console.log(' Sending cancel request to backend for ride:', rideIdStr);
       await apiService.post(`/rides/${rideIdStr}/cancel`, { reason });
-      console.log('✅ Ride cancelled successfully');
+      console.log(' Ride cancelled successfully');
     } catch (error: any) {
       console.error('Error cancelling ride:', error);
       console.error('Cancel ride error response:', error.response?.data);

@@ -226,7 +226,7 @@ const DriverDocumentsScreen: React.FC<DriverDocumentsScreenProps> = ({ navigatio
             {expiringCount > 0 && (
               <View style={styles.warningBanner}>
                 <Text variant="bodySmall" style={styles.warningText}>
-                  ⚠️ {expiringCount} document{expiringCount > 1 ? 's' : ''} expiring within 30 days
+                   {expiringCount} document{expiringCount > 1 ? 's' : ''} expiring within 30 days
                 </Text>
               </View>
             )}
