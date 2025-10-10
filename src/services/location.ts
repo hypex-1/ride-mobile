@@ -54,10 +54,10 @@ const getMockLocationForDevice = () => {
   const deviceId = Math.abs(Date.now() % 2); // Simple way to differentiate devices
   
   if (deviceId === 0) {
-    console.log(' Assigning ISIMM location for this device (Driver)');
+    logger.log(' Assigning ISIMM location for this device (Driver)');
     return MOCK_LOCATIONS.monastir_isimm;
   } else {
-    console.log(' Assigning Marina location for this device (Rider)');
+    logger.log(' Assigning Marina location for this device (Rider)');
     return MOCK_LOCATIONS.monastir_marina;
   }
 };
@@ -81,7 +81,7 @@ class LocationService {
       this.hasPermission = status === 'granted';
       return this.hasPermission;
     } catch (error) {
-      console.error('Error requesting location permissions:', error);
+      logger.error('Error requesting location permissions:', error);
       return false;
     }
   }
@@ -92,7 +92,7 @@ class LocationService {
       // Use mock location for development/emulator testing
       if (USE_MOCK_LOCATION) {
         const mockLocation = getMockLocationForDevice();
-        console.log(' Using mock location for emulator testing:', mockLocation.address);
+        logger.log(' Using mock location for emulator testing:', mockLocation.address);
         return mockLocation;
       }
 
@@ -114,11 +114,11 @@ class LocationService {
         longitude: location.coords.longitude,
       };
     } catch (error) {
-      console.error('Error getting current position:', error);
+      logger.error('Error getting current position:', error);
       // Fallback to mock location if real location fails
       if (isDevelopment) {
         const fallbackLocation = getMockLocationForDevice();
-        console.log(' Falling back to mock location:', fallbackLocation.address);
+        logger.log(' Falling back to mock location:', fallbackLocation.address);
         return fallbackLocation;
       }
       return null;
@@ -154,7 +154,7 @@ class LocationService {
 
       return subscription;
     } catch (error) {
-      console.error('Error watching position:', error);
+      logger.error('Error watching position:', error);
       if (errorCallback) {
         errorCallback(error as Error);
       }
@@ -214,7 +214,7 @@ class LocationService {
 
       return baseRecord;
     } catch (error) {
-      console.error('Error reverse geocoding:', error);
+      logger.error('Error reverse geocoding:', error);
       const googleAddress = await this.reverseGeocodeWithGoogle(latitude, longitude);
       if (googleAddress) {
         return googleAddress;
@@ -264,7 +264,7 @@ class LocationService {
         isWithinTunisia(location.latitude, location.longitude)
       );
     } catch (error) {
-      console.error('Error geocoding address:', error);
+      logger.error('Error geocoding address:', error);
       return [];
     }
   }
@@ -502,7 +502,7 @@ class LocationService {
 
       return null;
     } catch (error) {
-      console.error('Error reverse geocoding with Google:', error);
+      logger.error('Error reverse geocoding with Google:', error);
       return null;
     }
   }
@@ -512,7 +512,7 @@ class LocationService {
     try {
       return await Location.hasServicesEnabledAsync();
     } catch (error) {
-      console.error('Error checking location services:', error);
+      logger.error('Error checking location services:', error);
       return false;
     }
   }

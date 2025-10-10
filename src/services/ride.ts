@@ -74,23 +74,23 @@ class RideService {
       const destLng = destinationLng || pickupLng;
       
       const url = `/matching/nearby-drivers?pickup_lat=${pickupLat}&pickup_lng=${pickupLng}&destination_lat=${destLat}&destination_lng=${destLng}&radius=${radius}`;
-      console.log('Fetching nearby drivers with URL:', url);
+      logger.log('Fetching nearby drivers with URL:', url);
       
       const response = await apiService.get<Driver[]>(url);
-      console.log('Nearby drivers response:', response);
+      logger.log('Nearby drivers response:', response);
       
       // If no drivers from API, return mock drivers for development
       if (!response || response.length === 0) {
-        console.log('No real drivers found, returning mock drivers for development');
+        logger.log('No real drivers found, returning mock drivers for development');
         return this.getMockDrivers(pickupLat, pickupLng);
       }
       
       return response;
     } catch (error: any) {
-      console.error('Error fetching nearby drivers:', error);
-      console.error('Error response:', error.response?.data);
+      logger.error('Error fetching nearby drivers:', error);
+      logger.error('Error response:', error.response?.data);
       // Return mock data for development
-      console.log('API error, returning mock drivers for development');
+      logger.log('API error, returning mock drivers for development');
       return this.getMockDrivers(pickupLat, pickupLng);
     }
   }
@@ -98,7 +98,7 @@ class RideService {
   // Request a ride
   async requestRide(rideRequest: RideRequest): Promise<Ride> {
     try {
-      console.log(' REQUESTING RIDE - Original data:', JSON.stringify(rideRequest, null, 2));
+      logger.log(' REQUESTING RIDE - Original data:', JSON.stringify(rideRequest, null, 2));
       
       // Transform the data to match backend expectations
       const requestData = {
@@ -111,16 +111,16 @@ class RideService {
         // Note: rideType is not expected by the backend
       };
       
-      console.log(' TRANSFORMED DATA for backend:', JSON.stringify(requestData, null, 2));
+      logger.log(' TRANSFORMED DATA for backend:', JSON.stringify(requestData, null, 2));
       
       const response = await apiService.post<Ride>('/rides', requestData);
       return response;
     } catch (error: any) {
-      console.error('Error requesting ride:', error);
-      console.error('Error response:', error.response?.data);
+      logger.error('Error requesting ride:', error);
+      logger.error('Error response:', error.response?.data);
       
       // For development/testing - return a mock ride
-      console.log('Creating mock ride for testing...');
+      logger.log('Creating mock ride for testing...');
       const mockRide: Ride = {
         id: 'mock-ride-' + Date.now(),
         riderId: 'current-user',
@@ -161,7 +161,7 @@ class RideService {
       const response = await apiService.get<Ride>(`/rides/${rideId}`);
       return response;
     } catch (error) {
-      console.error('Error fetching ride details:', error);
+      logger.error('Error fetching ride details:', error);
       throw new Error('Failed to get ride details');
     }
   }
@@ -169,29 +169,29 @@ class RideService {
   // Cancel a ride
   async cancelRide(rideId: string | number, reason?: string): Promise<void> {
     try {
-      console.log(' cancelRide called with:', { rideId, type: typeof rideId, reason });
+      logger.log(' cancelRide called with:', { rideId, type: typeof rideId, reason });
       
       // Convert rideId to string if it's a number
       const rideIdStr = String(rideId);
       
       // Check if rideId is valid
       if (!rideIdStr || rideIdStr === 'undefined' || rideIdStr === 'null') {
-        console.error('Cannot cancel ride: rideId is invalid:', rideIdStr);
+        logger.error('Cannot cancel ride: rideId is invalid:', rideIdStr);
         return;
       }
       
       // Handle mock rides
       if (rideIdStr.startsWith('mock-ride-')) {
-        console.log('Cancelling mock ride:', rideIdStr);
+        logger.log('Cancelling mock ride:', rideIdStr);
         return;
       }
       
-      console.log(' Sending cancel request to backend for ride:', rideIdStr);
+      logger.log(' Sending cancel request to backend for ride:', rideIdStr);
       await apiService.post(`/rides/${rideIdStr}/cancel`, { reason });
-      console.log(' Ride cancelled successfully');
+      logger.log(' Ride cancelled successfully');
     } catch (error: any) {
-      console.error('Error cancelling ride:', error);
-      console.error('Cancel ride error response:', error.response?.data);
+      logger.error('Error cancelling ride:', error);
+      logger.error('Cancel ride error response:', error.response?.data);
       
       // For mock rides or development, don't throw error
       const rideIdStr = String(rideId);
@@ -209,7 +209,7 @@ class RideService {
       const response = await apiService.get<Ride[]>('/rides');
       return response;
     } catch (error) {
-      console.error('Error fetching ride history:', error);
+      logger.error('Error fetching ride history:', error);
       return [];
     }
   }
@@ -233,7 +233,7 @@ class RideService {
         totalSpent: totalSpent
       };
     } catch (error) {
-      console.error('Error fetching ride statistics:', error);
+      logger.error('Error fetching ride statistics:', error);
       return {
         completedTrips: 0,
         totalSpent: 0
@@ -246,7 +246,7 @@ class RideService {
     try {
       await apiService.post('/payments', paymentData);
     } catch (error) {
-      console.error('Error logging payment:', error);
+      logger.error('Error logging payment:', error);
       throw new Error('Failed to log payment');
     }
   }
@@ -257,7 +257,7 @@ class RideService {
       const response = await apiService.get(`/payments/ride/${rideId}`);
       return response;
     } catch (error) {
-      console.error('Error fetching payment receipt:', error);
+      logger.error('Error fetching payment receipt:', error);
       throw new Error('Failed to get payment receipt');
     }
   }
@@ -320,7 +320,7 @@ class RideService {
       
       return estimatedFare;
     } catch (error) {
-      console.error('Error calculating fare:', error);
+      logger.error('Error calculating fare:', error);
       return 1.500; // Return minimum standard fare as fallback
     }
   }

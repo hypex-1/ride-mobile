@@ -4,6 +4,12 @@ import { Platform } from 'react-native';
 import { apiService } from './api';
 
 // Configure notification handling
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+import apiService from './api';
+import { logger } from '../utils/logger';
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -22,7 +28,7 @@ class NotificationService {
     try {
       // Check if device supports push notifications
       if (!Device.isDevice) {
-        console.log(' Push notifications only work on physical devices');
+        logger.log(' Push notifications only work on physical devices');
         return null;
       }
 
@@ -37,7 +43,7 @@ class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.log(' Failed to get push token for push notification!');
+        logger.log(' Failed to get push token for push notification!');
         return null;
       }
 
@@ -47,7 +53,7 @@ class NotificationService {
         : false;
 
       if (!isUuid) {
-        console.log(
+        logger.log(
           ' Skipping Expo push token fetch: missing valid EXPO_PUBLIC_PROJECT_ID. Set this to your Expo project UUID when building a dev/production client.'
         );
         return null;
@@ -58,7 +64,7 @@ class NotificationService {
         projectId,
       });
 
-      console.log(' Push token obtained:', token.data);
+      logger.log(' Push token obtained:', token.data);
       this.pushToken = token.data;
 
       // Configure notification channels for Android
@@ -80,7 +86,7 @@ class NotificationService {
 
       return token.data;
     } catch (error) {
-      console.error(' Error getting push token:', error);
+      logger.error(' Error getting push token:', error);
       return null;
     }
   }
@@ -88,7 +94,7 @@ class NotificationService {
   // Send push token to backend
   async registerPushToken(token: string): Promise<boolean> {
     try {
-      console.log(' Sending push token to backend:', token);
+      logger.log(' Sending push token to backend:', token);
       
       await apiService.post('/users/me/push-token', {
         pushToken: token,
@@ -101,10 +107,10 @@ class NotificationService {
         }
       });
 
-      console.log(' Push token registered successfully');
+      logger.log(' Push token registered successfully');
       return true;
     } catch (error) {
-      console.error(' Error registering push token:', error);
+      logger.error(' Error registering push token:', error);
       return false;
     }
   }
@@ -116,31 +122,31 @@ class NotificationService {
   } {
     // Handle notification received while app is running
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log(' Notification received:', notification);
+      logger.log(' Notification received:', notification);
       
       // You can handle specific notification types here
       const { title, body, data } = notification.request.content;
       
       if (data?.type === 'ride_accepted') {
-        console.log(' Ride accepted notification');
+        logger.log(' Ride accepted notification');
       } else if (data?.type === 'new_ride_request') {
-        console.log(' New ride request notification');
+        logger.log(' New ride request notification');
       }
     });
 
     // Handle notification response (when user taps notification)
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(' Notification tapped:', response);
+      logger.log(' Notification tapped:', response);
       
       const { data } = response.notification.request.content;
       
       // Navigate based on notification type
       if (data?.type === 'ride_accepted' && data?.rideId) {
         // Navigate to ride tracking screen
-        console.log('Navigate to ride tracking for ride:', data.rideId);
+        logger.log('Navigate to ride tracking for ride:', data.rideId);
       } else if (data?.type === 'new_ride_request' && data?.rideId) {
         // Navigate to ride request screen for drivers
-        console.log('Navigate to ride request for ride:', data.rideId);
+        logger.log('Navigate to ride request for ride:', data.rideId);
       }
     });
 
@@ -169,9 +175,9 @@ class NotificationService {
         },
         trigger: null, // Show immediately
       });
-      console.log(' Test notification sent');
+      logger.log(' Test notification sent');
     } catch (error) {
-      console.error(' Error sending test notification:', error);
+      logger.error(' Error sending test notification:', error);
     }
   }
 
